@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from R_extruder_service.models import RScript
 
-class ScriptSerializer(serializers.ModelSerializer):
-    class Meta:
+class RScriptForm(serializers.ModelSerializer):
+    class Metal:
         model = RScript
-        fields = '__all__'
+        fields = ('script',)

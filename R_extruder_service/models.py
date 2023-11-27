@@ -1,15 +1,10 @@
-import uuid
-
 from django.db import models
+from django.conf import settings
+import os
 
-# Create your models here.
 class RScript(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4(), editable=False)
-    fileName = models.CharField(max_length=100, unique=True)
-    content = models.TextField()
+    script = models.FileField(upload_to=settings.STATIC_R)
 
-    class Meta:
-        db_table = "scripts"
-        ordering = ["-createdAt"]
-        def __str__(self) -> str:
-            return self.fileName
+    @property
+    def script_path(self):
+        return os.path.basename(self.script.name)
