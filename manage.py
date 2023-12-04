@@ -17,6 +17,7 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
+os.environ['R_HOME'] = r'C:\Program Files\R\R-4.3.2'
 
 if __name__ == '__main__':
     main()
