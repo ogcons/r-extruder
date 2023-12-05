@@ -21,7 +21,7 @@ class TestUrls(TestCase):
     def test_get_all_scripts(self):
 
         # when
-        url = reverse('rscript-list-create')
+        url = reverse('post-run-r-script')
         response = self.client.get(url)
 
         # then
