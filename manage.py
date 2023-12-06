@@ -3,7 +3,6 @@
 import os
 import sys
 
-
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'R_extruder.settings')
@@ -17,7 +16,7 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
-os.environ['R_HOME'] = r'C:\Program Files\R\R-4.3.2'
+r_home = os.environ.get('R_HOME')
 
 if __name__ == '__main__':
     main()

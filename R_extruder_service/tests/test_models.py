@@ -1,43 +1,35 @@
+import os
+from io import BytesIO
+from django.conf import settings
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import ObjectDoesNotExist
+from docx import Document
 from ..models import RScript, WordDocument
-import os
 
-class RScriptModelTest(TestCase):
+class TestModels(TestCase):
+
+    # Creates instances
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
-        # create RScript instance
+        # Create RScript instance
         cls.sample_script = RScript.objects.create(
             script=SimpleUploadedFile("test_script.R", b"file_content")
         )
         cls.rscript = RScript.objects.create(script='test_file')
 
-        # create WordDocument instance
-        cls.sample_document = WordDocument.objects.create(
-            document=SimpleUploadedFile("test_document.docx", b"document_content"),
-            file_name='test_document',
-            file_content=b"document_content"
-        )
-        cls.word_document = WordDocument.objects.create(document='test_file.docx', file_name='test_file',
-                                                        file_content=b"file_content")
-    @classmethod
-    def tearDownClass(cls):
-        # delete testFiles after tests
-        try:
-            os.remove(cls.sample_script.script.path)
-        except (ObjectDoesNotExist, FileNotFoundError):
-            pass
+        # Create a valid DOCX
+        content = "This is a valid DOCX file."
+        buffer = BytesIO()
+        doc = Document()
+        doc.add_paragraph(content)
+        doc.save(buffer)
+        buffer.seek(0)
+        cls.valid_docx = SimpleUploadedFile("valid_document.docx", buffer.read())
 
-        try:
-            os.remove(cls.sample_document.document.path)
-        except (ObjectDoesNotExist, FileNotFoundError):
-            pass
-
-        super().tearDownClass()
-
+    # Tests the creation of an RScript
     def test_rscript_creation(self):
         # when
         rscript = self.rscript
@@ -45,6 +37,7 @@ class RScriptModelTest(TestCase):
         # then
         self.assertEqual(rscript.script, 'test_file')
 
+    # Tests the script path
     def test_script_path_property(self):
         # when
         expected_path = os.path.basename(self.sample_script.script.name)
@@ -56,23 +49,34 @@ class RScriptModelTest(TestCase):
         self.assertEqual(self.sample_script.script_path, expected_path)
         self.assertEqual(actual_content, "file_content")
 
+    # Test the creation of a valid DOCX
     def test_word_document_creation(self):
-        # when
-        word_document = self.word_document
+        # When
+        content = "This is a valid DOCX file."
+        word_document = WordDocument.objects.create(
+            document=self.valid_docx,
+            file_name='valid_file',
+            file_content=content.encode('utf-8')
+        )
+        # Then
+        self.assertEqual(word_document.document_name, 'valid_document.docx')
+        self.assertEqual(word_document.file_name, 'valid_file')
+        self.assertEqual(word_document.file_content, content.encode('utf-8'))
 
-        # then
-        self.assertEqual(word_document.document, 'test_file.docx')
-        self.assertEqual(word_document.file_name, 'test_file')
-        self.assertEqual(word_document.file_content, b"file_content")
+    # Deletes script & DOCX after tests
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
 
-    def test_document_name_property(self):
-        # given
-        expected_name = os.path.basename(self.sample_document.document.name)
+        # Remove the created objects in the database
+        cls.sample_script.delete()
 
-        # when
-        with self.sample_document.document.open('rb') as document_file:
-            actual_content = document_file.read()
+        # Delete associated files on the file system
+        script_path = os.path.join(settings.MEDIA_ROOT, cls.sample_script.script.name)
+        docx_path = os.path.join(settings.MEDIA_ROOT, 'word_documents', cls.valid_docx.name)
 
-        # then
-        self.assertEqual(self.sample_document.document_name, expected_name)
-        self.assertEqual(actual_content, b"document_content")
+        if os.path.exists(script_path):
+            os.remove(script_path)
+
+        if os.path.exists(docx_path):
+            os.remove(docx_path)

@@ -1,18 +1,27 @@
+import os
 import subprocess
+import rpy2.robjects as robjects
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status, generics
+from django.conf import settings
+from django.http import HttpResponse
+from R_extruder.settings import BASE_DIR
 from .models import RScript
 from .serializers import RScriptSerializer
-from django.conf import settings
-import os
 import rpy2.robjects as robjects
-from django.http import HttpResponse
 
 class PostRunRScriptView(APIView):
-    def post(self, request, *args, **kwargs):
-        BASE_DIR = settings.BASE_DIR
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.BASE_DIR = settings.BASE_DIR
+        self.media_directory = os.path.join(self.BASE_DIR, 'media')
 
+    def check_media_directory(self):
+        if not os.path.exists(self.media_directory):
+            os.makedirs(self.media_directory)
+
+    def post(self, request, *args, **kwargs):
         try:
             # Get script
             r_script_serializer = RScriptSerializer(data=request.data)
@@ -23,10 +32,8 @@ class PostRunRScriptView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # media exists?
-        media_directory = os.path.join(BASE_DIR, 'media')
-        if not os.path.exists(media_directory):
-            os.makedirs(media_directory)
+        # Check media directory existence
+        self.check_media_directory()
 
         # paths for script and plot
         r_script_path = os.path.join(BASE_DIR, 'media', str(r_script.script)).replace("\\", "/")
@@ -45,9 +52,8 @@ class PostRunRScriptView(APIView):
             with open(r_script_path, 'w') as file:
                 file.write(r_script_code)
 
-            # Execute and run the R script
             command = ['Rscript', r_script_path]
-            subprocess.run(command, check=True)
+            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             return Response({"message": "R script executed successfully", "plot_url": "media/plot.png"},
                             status=status.HTTP_201_CREATED)

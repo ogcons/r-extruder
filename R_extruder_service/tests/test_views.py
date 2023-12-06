@@ -1,10 +1,10 @@
 import os
 import subprocess
+from rest_framework.test import APIClient
+from rest_framework import status
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
-from rest_framework.test import APIClient
-from rest_framework import status
 from django.conf import settings
 from ..models import RScript
 from ..serializers import RScriptSerializer
@@ -51,7 +51,7 @@ class PostRunRScriptViewTest(TestCase):
         r_script_1 = RScript.objects.create(**r_script_data_1)
         r_script_2 = RScript.objects.create(**r_script_data_2)
 
-        # Simulate GET all
+        # Simulate GET all R scripts
         response = self.client.get('/api/extractors/')
 
         # Assert
