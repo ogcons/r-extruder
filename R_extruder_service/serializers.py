@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from R_extruder_service.models import RScript, WordDocument
 
-
 class RScriptSerializer(serializers.ModelSerializer):
     class Meta:
         model = RScript

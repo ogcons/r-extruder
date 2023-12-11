@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import RScriptListCreateView, RScriptRetrieveView
+from .views import RScriptRetrieveView, PostRunRScriptView
 
 urlpatterns = [
-    path('extractors/', RScriptListCreateView.as_view(), name='rscript-list-create'),
+    path('extractors/',  PostRunRScriptView.as_view(), name='post-run-r-script'),
     path('extractors/<int:pk>', RScriptRetrieveView.as_view(), name='rscript-retrieve'),
 ]
