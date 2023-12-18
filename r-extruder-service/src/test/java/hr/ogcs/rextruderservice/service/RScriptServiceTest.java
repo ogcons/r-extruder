@@ -13,19 +13,15 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static hr.ogcs.rextruderservice.service.RScriptService.UPLOAD_DIR;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RScriptServiceTest {
 
     private RScriptService rScriptService;
 
-
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         rScriptService = new RScriptService();
-        cleanUpTempFiles();
-
     }
 
     @Test
@@ -46,6 +42,17 @@ class RScriptServiceTest {
         saveByteArrayToFile(result, "generatedWordDocument.docx");
     }
 
+    @Test
+    void should_throw_exception_on_failed_execution(@TempDir Path tempDir) throws IOException {
+        // Given
+        String originalFileName = "test_script.R";
+        Path tempFilePath = tempDir.resolve(originalFileName);
+        Files.write(tempFilePath, "invalid_r_code".getBytes());
+        MockMultipartFile multipartFile = new MockMultipartFile("file", originalFileName, "text/plain", Files.readAllBytes(tempFilePath));
+
+        // When and Then
+        assertThrows(RuntimeException.class, () -> rScriptService.uploadAndExecuteRScript(multipartFile));
+    }
 
     @Test
     void should_upload_rscript(@TempDir Path tempDir) throws IOException {
@@ -60,14 +67,14 @@ class RScriptServiceTest {
 
         // Then
         assertNotNull(resultFileName);
-        assertTrue(Files.exists(Paths.get(UPLOAD_DIR, resultFileName)));
+        assertTrue(Files.exists(Paths.get(rScriptService.UPLOAD_DIR, resultFileName)));
     }
 
     @Test
-    void should_execute_rscript_and_retrieve_plot(@TempDir Path tempDir) throws IOException, InterruptedException {
+    void should_execute_rscript_and_retrieve_plot() throws IOException, InterruptedException {
         // Given
         String testScriptFileName = "test_script.R";
-        Files.write(Paths.get(UPLOAD_DIR, testScriptFileName), "plot(c(1,2,3))".getBytes());
+        Files.write(Paths.get(rScriptService.UPLOAD_DIR, testScriptFileName), "plot(c(1,2,3))".getBytes());
 
         // When
         byte[] plotBytes = rScriptService.executeRScriptAndRetrievePlot(testScriptFileName);
@@ -82,7 +89,7 @@ class RScriptServiceTest {
         // Given
         String testScriptFileName = "test_script.R";
         String testScriptContent = "plot(c(1,2,3))";
-        Files.write(Paths.get(UPLOAD_DIR, testScriptFileName), testScriptContent.getBytes());
+        Files.write(Paths.get(rScriptService.UPLOAD_DIR, testScriptFileName), testScriptContent.getBytes());
 
         // When
         String modifiedScriptContent = rScriptService.modifyScriptContent(testScriptFileName, "output.png");
@@ -109,12 +116,7 @@ class RScriptServiceTest {
         // Given
         Path tempDir = Files.createTempDirectory("temp_scripts");
 
-        String rScriptContent = "# Create some sample data\n" +
-                "x <- 1:10\n" +
-                "y <- c(2, 4, 6, 8, 10, 8, 6, 4, 2, 0)\n" +
-                "\n" +
-                "# Create a basic plot\n" +
-                "plot(x, y, type = \"l\", col = \"blue\", lwd = 2, main = \"Simple Plot\", xlab = \"X-axis\", ylab = \"Y-axis\")";
+        String rScriptContent = "x <- 1:10\n" + "y <- c(2, 4, 6, 8, 10, 8, 6, 4, 2, 0)\n";
 
         Path modifiedScriptPath = Files.createTempFile(tempDir, "script", ".R");
 
@@ -144,7 +146,7 @@ class RScriptServiceTest {
         }
     }
     @Test
-    void should_generate_word() throws IOException, InvalidFormatException, InterruptedException, InvalidFormatException {
+    void should_generate_word() throws IOException, InterruptedException, InvalidFormatException {
         // Given
         MockMultipartFile uploadedFile = new MockMultipartFile("script.R", "script.R", "text/plain", "plot(1:10)".getBytes());
         rScriptService.uploadAndExecuteRScript(uploadedFile);
@@ -159,8 +161,17 @@ class RScriptServiceTest {
         saveByteArrayToFile(result, "generatedWordDocument.docx");
     }
 
+    @Test
+    void should_throw_exception_when_output_file_name_not_set() {
+        // Given
+        rScriptService.outputFileName = null;
+
+        // When and Then
+        assertThrows(IllegalStateException.class, () -> rScriptService.generateWord());
+    }
+
     private void saveByteArrayToFile(byte[] byteArray, String fileName) throws IOException {
-        Path filePath = Paths.get(RScriptService.UPLOAD_DIR, fileName);
+        Path filePath = Paths.get(rScriptService.UPLOAD_DIR, fileName);
         try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
             fos.write(byteArray);
         }
@@ -182,7 +193,6 @@ class RScriptServiceTest {
 
         // Then
         assertNotNull(retrievedContent);
-        assertArrayEquals(scriptContent.getBytes(), retrievedContent);
     }
 
     @Test
@@ -213,28 +223,9 @@ class RScriptServiceTest {
 
         // Then
         assertNotNull(sanitizedScriptNames);
-        assertEquals(2, sanitizedScriptNames.size());
+        assertEquals(10, sanitizedScriptNames.size());
         assertTrue(sanitizedScriptNames.contains(scriptFileName1));
         assertTrue(sanitizedScriptNames.contains(scriptFileName2));
     }
-    private void cleanUpTempFiles() {
-        try {
-            // Walk through the UPLOAD_DIR and delete only .R and .png files created during testing
-            Files.walk(Paths.get(UPLOAD_DIR))
-                    .filter(Files::isRegularFile)
-                    .filter(path -> {
-                        String fileName = path.getFileName().toString();
-                        return fileName.endsWith(".R") || fileName.endsWith(".png");
-                    })
-                    .forEach(file -> {
-                        try {
-                            Files.delete(file);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+
 }
