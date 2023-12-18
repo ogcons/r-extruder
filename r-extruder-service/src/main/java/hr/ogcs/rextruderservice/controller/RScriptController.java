@@ -61,7 +61,7 @@ public class RScriptController {
 
         } catch (IOException | InterruptedException | InvalidFormatException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(null); // Internal Server Error
+            return ResponseEntity.status(500).body(null);
         }
     }
 }

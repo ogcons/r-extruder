@@ -23,11 +23,11 @@ import java.util.stream.Stream;
 @Service
 @Slf4j
 public class RScriptService {
-
-    static final String UPLOAD_DIR = new File("src/main/resources/files").getAbsolutePath();
+    String UPLOAD_DIR = new File(getClass().getClassLoader().getResource("files").getFile()).getAbsolutePath();
     private final AtomicLong counter = new AtomicLong(0);
+
     @Getter
-    private String outputFileName;
+    public String outputFileName;
 
     public byte[] uploadAndExecuteRScript(MultipartFile uploadedFile) throws IOException, InterruptedException, InvalidFormatException {
         String scriptFileName = uploadRScript(uploadedFile);
@@ -47,7 +47,7 @@ public class RScriptService {
     }
 
     byte[] executeRScriptAndRetrievePlot(String scriptFileName) throws IOException, InterruptedException {
-        outputFileName = scriptFileName.replace(".R", ".png"); // Store the output file name
+        outputFileName = scriptFileName.replace(".R", ".png");
 
         // Modify script to save the plot as a PNG
         String modifiedScriptContent = modifyScriptContent(scriptFileName, outputFileName);
@@ -103,8 +103,6 @@ public class RScriptService {
             throw new IllegalStateException("Output file name is not set");
         }
 
-        log.info("FNAME: " + outputFileName);
-
         File imageFile = new File(UPLOAD_DIR, outputFileName);
         InputStream imageInputStream = new FileInputStream(imageFile);
 
@@ -133,11 +131,6 @@ public class RScriptService {
 
         return Files.readAllBytes(filePath);
     }
-
-    /**public byte[] getRScriptContentById(int id) throws IOException {
-        String fileName = id + ".R";
-        return getRScriptContent(fileName);
-    } **/
 
     public List<String> getAllRScriptNames() {
         try (Stream<Path> walk = Files.walk(Paths.get(UPLOAD_DIR))) {
