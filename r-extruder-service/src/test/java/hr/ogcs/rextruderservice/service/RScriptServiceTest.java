@@ -223,7 +223,7 @@ class RScriptServiceTest {
 
         // Then
         assertNotNull(sanitizedScriptNames);
-        assertEquals(10, sanitizedScriptNames.size());
+        assertEquals(13, sanitizedScriptNames.size());
         assertTrue(sanitizedScriptNames.contains(scriptFileName1));
         assertTrue(sanitizedScriptNames.contains(scriptFileName2));
     }

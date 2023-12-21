@@ -73,6 +73,12 @@ public class RScriptService {
             scriptContent = scriptContent.replace("plot(", String.format("png('%s')\nplot(", outputFileName));
             scriptContent += "\ndev.off()";
         }
+        if (scriptContent.contains("KinReport(")) {
+            int index = scriptContent.indexOf("KinReport(");
+            String pngCommand = String.format("png('%s')\n", outputFileName);
+            scriptContent = scriptContent.substring(0, index) + pngCommand + scriptContent.substring(index);
+        }
+
 
         return scriptContent;
     }
@@ -145,4 +151,5 @@ public class RScriptService {
             return Collections.emptyList();
         }
     }
+
 }
