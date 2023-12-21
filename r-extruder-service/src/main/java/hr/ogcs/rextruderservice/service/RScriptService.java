@@ -78,8 +78,6 @@ public class RScriptService {
             String pngCommand = String.format("png('%s')\n", outputFileName);
             scriptContent = scriptContent.substring(0, index) + pngCommand + scriptContent.substring(index);
         }
-
-
         return scriptContent;
     }
 

@@ -34,7 +34,6 @@ public class S3Service {
     public String uploadWordToS3(MultipartFile wordFile) throws IOException, InterruptedException, InvalidFormatException {
         String objectKey = counter.getAndIncrement() + "_" + wordFile.getOriginalFilename();
 
-        // Upload Word file to S3
         s3Client.putObject(PutObjectRequest.builder()
                 .bucket(s3Bucket)
                 .key(objectKey)
@@ -54,7 +53,6 @@ public class S3Service {
 
             return objectBytes.asByteArray();
         } catch (S3Exception e) {
-            // Handle S3 exceptions or convert to IOException
             throw new IOException("Failed to download Word document from S3", e);
         }
     }
@@ -72,7 +70,6 @@ public class S3Service {
                     .map(S3Object::key)
                     .collect(Collectors.toList());
         } catch (S3Exception e) {
-            // Handle S3 exceptions or convert to IOException
             throw new IOException("Failed to list documents in S3 bucket", e);
         }
     }
