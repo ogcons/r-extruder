@@ -26,6 +26,8 @@ public class RScriptService {
     String UPLOAD_DIR = new File(getClass().getClassLoader().getResource("files").getFile()).getAbsolutePath();
     private final AtomicLong counter = new AtomicLong(0);
 
+    private RProcessor rProcessor;
+
     @Getter
     public String outputFileName;
 
@@ -65,6 +67,13 @@ public class RScriptService {
         return Files.readAllBytes(destinationPath);
     }
 
+    /**
+     * Extends the original R script by code that enables the plotting of PNG files.
+     * @param scriptFileName
+     * @param outputFileName
+     * @return
+     * @throws IOException
+     */
     String modifyScriptContent(String scriptFileName, String outputFileName) throws IOException {
         String scriptContent = new String(Files.readAllBytes(Paths.get(UPLOAD_DIR, scriptFileName)), StandardCharsets.UTF_8);
 
@@ -90,13 +99,15 @@ public class RScriptService {
     void executeRScript(Path modifiedScriptPath) throws IOException, InterruptedException {
         String rScriptPath = "C:\\Program Files\\R\\R-4.3.2\\bin\\Rscript.exe";
 
-        String command = rScriptPath + " " + modifiedScriptPath.toAbsolutePath().toString();
+        String command = rScriptPath + " " + modifiedScriptPath.toAbsolutePath();
 
-        Process process = Runtime.getRuntime().exec(command);
+        // The external R executable creates an PNG that is named like the script itself
+        Process process = rProcessor.execute(command);
 
         int exitCode = process.waitFor();
 
         if (exitCode != 0) {
+            // TODO print put process errors
             throw new RuntimeException("Failed to execute modified R script. Exit code: " + exitCode);
         }
 
