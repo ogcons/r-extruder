@@ -22,13 +22,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class S3ControllerTest {
+class PersistWordControllerTest {
 
     @Mock
     private S3Service s3Service;
 
     @InjectMocks
-    private S3Controller s3Controller;
+    private PersistWordController s3Controller;
 
     @Test
     void should_upload_to_s3() throws IOException, InterruptedException, InvalidFormatException {
@@ -36,7 +36,7 @@ class S3ControllerTest {
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
 
         // When
-        when(s3Service.uploadWordToS3(any(MockMultipartFile.class))).thenReturn("test.docx");
+        when(s3Service.uploadFileToS3(any(MockMultipartFile.class))).thenReturn("test.docx");
         ResponseEntity<String> response = s3Controller.uploadToS3(mockMultipartFile);
 
         // Then
@@ -49,7 +49,7 @@ class S3ControllerTest {
         // Given
         String fileName = "test.docx";
         byte[] content = "Test content".getBytes();
-        when(s3Service.downloadWordFromS3(fileName)).thenReturn(content);
+        when(s3Service.downloadFileFromS3(fileName)).thenReturn(content);
 
         // When
         ResponseEntity<Resource> response = s3Controller.downloadDocument(fileName);
@@ -67,7 +67,7 @@ class S3ControllerTest {
         List<String> documentList = List.of("doc1", "doc2");
 
         //When
-        when(s3Service.listDocumentsInBucket()).thenReturn(documentList);
+        when(s3Service.listFilesOfBucket()).thenReturn(documentList);
         ResponseEntity<List<String>> response = s3Controller.listDocuments();
 
         // Then

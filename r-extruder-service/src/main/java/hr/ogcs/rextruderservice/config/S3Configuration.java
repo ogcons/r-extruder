@@ -1,4 +1,4 @@
-package hr.ogcs.rextruderservice.model;
+package hr.ogcs.rextruderservice.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import java.net.URI;
 
 @Configuration
-public class S3Model {
+public class S3Configuration {
 
     @Value("${aws.accessKeyId}")
     private String accessKey;

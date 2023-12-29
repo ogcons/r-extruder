@@ -13,8 +13,6 @@ services:
     image: amazon/aws-cli
     depends_on:
       - localstack
-    volumes:
-      - ./testbucket:/aws
     environment:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test

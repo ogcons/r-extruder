@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-public class S3Controller {
+public class PersistWordController {
 
     @Autowired
     private S3Service s3Service;
@@ -25,7 +25,7 @@ public class S3Controller {
     @PostMapping("/extractors/s3")
     public ResponseEntity<String> uploadToS3(@RequestPart("file") MultipartFile file) {
         try {
-            String s3ObjectKey = s3Service.uploadWordToS3(file);
+            String s3ObjectKey = s3Service.uploadFileToS3(file);
             return ResponseEntity.ok("Word document uploaded to S3 with key: " + s3ObjectKey);
         } catch (IOException | InterruptedException | InvalidFormatException e) {
             e.printStackTrace();
@@ -36,7 +36,7 @@ public class S3Controller {
     @GetMapping("/extractors/s3/{fileName}")
     public ResponseEntity<Resource> downloadDocument(@PathVariable String fileName) {
         try {
-            byte[] documentBytes = s3Service.downloadWordFromS3(fileName);
+            byte[] documentBytes = s3Service.downloadFileFromS3(fileName);
 
             ByteArrayResource resource = new ByteArrayResource(documentBytes);
 
@@ -57,7 +57,7 @@ public class S3Controller {
     @GetMapping("/extractors/s3/")
     public ResponseEntity<List<String>> listDocuments() {
         try {
-            List<String> documentList = s3Service.listDocumentsInBucket();
+            List<String> documentList = s3Service.listFilesOfBucket();
             return new ResponseEntity<>(documentList, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

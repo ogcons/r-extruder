@@ -18,15 +18,18 @@ class RProcessMockTest {
     }
 
     @Test
-    void execute() throws IOException {
-        var command = "cd some-r-file.r";
-        var execute = rProcessMock.execute(command);
+    void should_create_dummy_png_from_dummy_rfile() throws IOException, InterruptedException {
+        // Given
+        var command = "some-r-file.r";
 
-        assertNotNull(execute);
+        // When
+        var process = rProcessMock.execute(command);
 
+        // Then
+        assertNotNull(process);
+        assertEquals(0, process.waitFor());
         var expectedPngFileName = "some-r-file.r.png";
-        var folderPath = "src/main/resources/files";
-        var targetPngFile = new File(folderPath + File.separator + expectedPngFileName);
+        var targetPngFile = new File("." + File.separator + expectedPngFileName);
 
         assertTrue(targetPngFile.exists(), "PNG file should exist");
     }

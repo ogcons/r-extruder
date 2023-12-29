@@ -31,7 +31,7 @@ public class S3Service {
         this.bucketName = bucketName;
     }
 
-    public String uploadWordToS3(MultipartFile wordFile) throws IOException, InterruptedException, InvalidFormatException {
+    public String uploadFileToS3(MultipartFile wordFile) throws IOException, InterruptedException, InvalidFormatException {
         String objectKey = counter.getAndIncrement() + "_" + wordFile.getOriginalFilename();
 
         s3Client.putObject(PutObjectRequest.builder()
@@ -42,7 +42,7 @@ public class S3Service {
         return objectKey;
     }
 
-    public byte[] downloadWordFromS3(String objectKey) throws IOException {
+    public byte[] downloadFileFromS3(String objectKey) throws IOException {
         try {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
@@ -53,10 +53,12 @@ public class S3Service {
 
             return objectBytes.asByteArray();
         } catch (S3Exception e) {
+            log.error("Failed to download Word document from S3", e);
             throw new IOException("Failed to download Word document from S3", e);
         }
     }
-    public List<String> listDocumentsInBucket() throws IOException {
+
+    public List<String> listFilesOfBucket() throws IOException {
         try {
             ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder()
                     .bucket(bucketName)
@@ -70,7 +72,7 @@ public class S3Service {
                     .map(S3Object::key)
                     .collect(Collectors.toList());
         } catch (S3Exception e) {
-            throw new IOException("Failed to list documents in S3 bucket", e);
+            throw new IOException("Failed to list files in S3 bucket", e);
         }
     }
 }

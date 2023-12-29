@@ -4,14 +4,15 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,8 +21,16 @@ class RScriptServiceTest {
     private RScriptService rScriptService;
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp() throws IOException, NoSuchFieldException, IllegalAccessException {
         rScriptService = new RScriptService();
+
+        setFieldValue(rScriptService, "rScriptPath", "C:\\Program Files\\R\\R-4.3.2\\bin\\Rscript.exe");
+    }
+    private void setFieldValue(Object target, String fieldName, Object value)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 
     @Test
@@ -41,6 +50,7 @@ class RScriptServiceTest {
 
         saveByteArrayToFile(result, "generatedWordDocument.docx");
     }
+
 
     @Test
     void should_throw_exception_on_failed_execution(@TempDir Path tempDir) throws IOException {
@@ -67,14 +77,14 @@ class RScriptServiceTest {
 
         // Then
         assertNotNull(resultFileName);
-        assertTrue(Files.exists(Paths.get(rScriptService.UPLOAD_DIR, resultFileName)));
+        assertTrue(Files.exists(Paths.get(System.getenv("UPLOAD_DIR"), resultFileName)));
     }
 
     @Test
     void should_execute_rscript_and_retrieve_plot() throws IOException, InterruptedException {
         // Given
         String testScriptFileName = "test_script.R";
-        Files.write(Paths.get(rScriptService.UPLOAD_DIR, testScriptFileName), "plot(c(1,2,3))".getBytes());
+        Files.write(Paths.get(System.getenv("UPLOAD_DIR"), testScriptFileName), "plot(c(1,2,3))".getBytes());
 
         // When
         byte[] plotBytes = rScriptService.executeRScriptAndRetrievePlot(testScriptFileName);
@@ -89,7 +99,7 @@ class RScriptServiceTest {
         // Given
         String testScriptFileName = "test_script.R";
         String testScriptContent = "plot(c(1,2,3))";
-        Files.write(Paths.get(rScriptService.UPLOAD_DIR, testScriptFileName), testScriptContent.getBytes());
+        Files.write(Paths.get(System.getenv("UPLOAD_DIR"), testScriptFileName), testScriptContent.getBytes());
 
         // When
         String modifiedScriptContent = rScriptService.modifyScriptContent(testScriptFileName, "output.png");
@@ -145,87 +155,14 @@ class RScriptServiceTest {
             });
         }
     }
-    @Test
-    void should_generate_word() throws IOException, InterruptedException, InvalidFormatException {
-        // Given
-        MockMultipartFile uploadedFile = new MockMultipartFile("script.R", "script.R", "text/plain", "plot(1:10)".getBytes());
-        rScriptService.uploadAndExecuteRScript(uploadedFile);
 
-        // When
-        byte[] result = rScriptService.generateWord();
 
-        // Then
-        assertNotNull(result);
-        assertTrue(result.length > 0);
-
-        saveByteArrayToFile(result, "generatedWordDocument.docx");
-    }
-
-    @Test
-    void should_throw_exception_when_output_file_name_not_set() {
-        // Given
-        rScriptService.outputFileName = null;
-
-        // When and Then
-        assertThrows(IllegalStateException.class, () -> rScriptService.generateWord());
-    }
 
     private void saveByteArrayToFile(byte[] byteArray, String fileName) throws IOException {
-        Path filePath = Paths.get(rScriptService.UPLOAD_DIR, fileName);
+        Path filePath = Paths.get(System.getenv("UPLOAD_DIR"), fileName);
         try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
             fos.write(byteArray);
         }
-    }
-    @Test
-    void should_get_rscript_content(@TempDir Path tempDir) throws IOException {
-        // Given
-        String originalFileName = "test_script.R";
-        Path tempFilePath = tempDir.resolve(originalFileName);
-        String scriptContent = "plot(c(1,2,3))";
-        Files.write(tempFilePath, scriptContent.getBytes());
-
-        // When
-        MockMultipartFile multipartFile = new MockMultipartFile("file", originalFileName, "text/plain", Files.readAllBytes(tempFilePath));
-        rScriptService.uploadRScript(multipartFile);
-
-        String generatedFileName = rScriptService.getAllRScriptNames().get(0);
-        byte[] retrievedContent = rScriptService.getRScriptContent(generatedFileName);
-
-        // Then
-        assertNotNull(retrievedContent);
-    }
-
-    @Test
-    void should_get_all_rscript_names(@TempDir Path tempDir) throws Exception {
-        // Given
-        String scriptFileName1 = "test_script1.R";
-        Path tempFilePath1 = tempDir.resolve(scriptFileName1);
-        Files.write(tempFilePath1, "plot(c(1,2,3))".getBytes());
-
-        // When
-        String scriptFileName2 = "test_script2.R";
-        Path tempFilePath2 = tempDir.resolve(scriptFileName2);
-        Files.write(tempFilePath2, "plot(c(4,5,6))".getBytes());
-
-        // When
-        MockMultipartFile multipartFile1 = new MockMultipartFile("file", scriptFileName1, "text/plain", Files.readAllBytes(tempFilePath1));
-        MockMultipartFile multipartFile2 = new MockMultipartFile("file", scriptFileName2, "text/plain", Files.readAllBytes(tempFilePath2));
-        rScriptService.uploadRScript(multipartFile1);
-        rScriptService.uploadRScript(multipartFile2);
-
-        List<String> scriptNames = rScriptService.getAllRScriptNames();
-
-
-        // Remove atomic counter prefix from script names
-        List<String> sanitizedScriptNames = scriptNames.stream()
-                .map(name -> name.replaceFirst("^\\d+_",""))
-                .collect(Collectors.toList());
-
-        // Then
-        assertNotNull(sanitizedScriptNames);
-        assertEquals(13, sanitizedScriptNames.size());
-        assertTrue(sanitizedScriptNames.contains(scriptFileName1));
-        assertTrue(sanitizedScriptNames.contains(scriptFileName2));
     }
 
 }

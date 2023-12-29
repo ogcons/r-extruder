@@ -36,7 +36,7 @@ class S3ServiceTest {
 
         // When
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenReturn(PutObjectResponse.builder().build());
-        String objectKey = s3Service.uploadWordToS3(mockMultipartFile);
+        String objectKey = s3Service.uploadFileToS3(mockMultipartFile);
 
         // Then
         assertEquals("0_test.docx", objectKey);
@@ -52,7 +52,7 @@ class S3ServiceTest {
 
         // When
         when(s3Client.getObjectAsBytes(any(GetObjectRequest.class))).thenReturn(responseBytes);
-        byte[] result = s3Service.downloadWordFromS3(objectKey);
+        byte[] result = s3Service.downloadFileFromS3(objectKey);
 
         // Then
         assertArrayEquals(content, result);
@@ -67,7 +67,7 @@ class S3ServiceTest {
 
         // When
         when(s3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listObjectsResponse);
-        List<String> documentList = s3Service.listDocumentsInBucket();
+        List<String> documentList = s3Service.listFilesOfBucket();
 
         // Then
         assertEquals(List.of("doc1", "doc2"), documentList);

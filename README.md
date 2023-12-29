@@ -20,39 +20,11 @@ Before running the application, ensure that the following prerequisites are met:
 
 Starting Localstack:
 
-```bash
-$ docker pull localstack/localstack
-$ docker run -d --name localstack -p 4566:4566 -e SERVICES=s3 localstack/localstack
+```bash 
+$ docker compose up
 ```
-Open Command Prompt and configure AWS:
-```bash
-$ aws configure
+## Configuration
+Set Environment Variable R_EXECUTABLE to the binary of the R script.
 
-AWS Access Key ID: "your-access-key"
-AWS Secret Access Key: "your-secret-key"
-Default region name: "your-region (recommended: eu-central-1)" 
-Default output format: json
-```
-Create a bucket:
-```bash
-$ aws --endpoint-url=http://localhost:4566 s3 mb s3://word-bucket
-```
-## Set environment variables:
-Add the following Environment variables for S3:
-```bash
-ACCESS_KEY="your-access-key"
-SECRET_KEY="your-secret-key"
-REGION="your-region"
-HOST=localstack
-ENDPOINT=http://localhost:4566
-BUCKET=word-bucket
-```
-
-
-
-
-
-
-
-
-
+For Windows Users:
+R_EXECUTABLE = C:\\Program Files\\R\\R-4.3.2\\bin\\Rscript.exe
