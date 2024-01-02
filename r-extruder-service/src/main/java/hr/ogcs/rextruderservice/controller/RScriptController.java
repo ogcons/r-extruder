@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api")
 @Slf4j
@@ -18,8 +20,8 @@ public class RScriptController {
     private RScriptService rScriptService;
 
     @PostMapping("/extractors")
-    public ResponseEntity<byte[]> uploadAndDownload(@RequestParam("file") MultipartFile file) {
-        byte[] wordBytes = rScriptService.uploadAndExecuteRScript(file);
+    public ResponseEntity<byte[]> uploadAndDownload(@RequestParam("file") MultipartFile file) throws IOException, InterruptedException {
+        byte[] wordBytes = rScriptService.createPlotFromRScript(file);
 
         // Make response as a Word file
         HttpHeaders headers = new HttpHeaders();
