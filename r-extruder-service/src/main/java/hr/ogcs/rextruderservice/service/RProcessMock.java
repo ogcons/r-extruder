@@ -8,34 +8,24 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Profile("mock")
 @Component
 public class RProcessMock implements RProcessor {
+
     @Value("${rscript.uploadDir}")
     private String uploadDir;
 
     @Override
     public Process execute(String command, String outputFileName, Path destinationPath) throws IOException {
+        BufferedImage dummyImage = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
 
-        String targetFilenamePng = Paths.get(uploadDir, outputFileName).toString();
+        File outputImageFile = new File(destinationPath.toFile(), outputFileName);
+        ImageIO.write(dummyImage, "png", outputImageFile);
 
-        // Creates blank image
-        BufferedImage img = new BufferedImage(256, 256,
-                BufferedImage.TYPE_INT_RGB);
-        File f = new File(targetFilenamePng);
-
-        ImageIO.write(img, "PNG", f);
-
-        Files.move(f.toPath(), destinationPath);
-
-        // returning dummy process
+        // Returning a dummy process
         // nslookup is one of the commands that works on Windows and Unix machines
         return new ProcessBuilder("nslookup", "localhost").start();
-
     }
-
 }
