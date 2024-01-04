@@ -14,9 +14,6 @@ import java.nio.file.Path;
 @Component
 public class RProcessMock implements RProcessor {
 
-    @Value("${rscript.uploadDir}")
-    private String uploadDir;
-
     @Override
     public Process execute(String command, String outputFileName, Path destinationPath) throws IOException {
         BufferedImage dummyImage = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);

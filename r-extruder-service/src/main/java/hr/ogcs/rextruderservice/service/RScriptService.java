@@ -2,7 +2,6 @@ package hr.ogcs.rextruderservice.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,18 +14,20 @@ import java.nio.file.*;
 @Slf4j
 public class RScriptService {
 
-    @Autowired
-    private DocumentService documentService;
+    private final DocumentService documentService;
 
-    @Autowired
-    private RProcessor rProcessor;
+    private final RProcessor rProcessor;
 
     @Value("${rscript.path}")
     private String rScriptPath;
 
-    @Value("${rscript.uploadDir}")
-    private String uploadDir;
+    @Value("${rscript.workingDir}")
+    private String workingDir = ".";
 
+    public RScriptService(DocumentService documentService, RProcessor rProcessor) {
+        this.documentService = documentService;
+        this.rProcessor = rProcessor;
+    }
 
     public byte[] createPlotFromRScript(MultipartFile uploadedFile) throws IOException, InterruptedException {
         try {
@@ -41,21 +42,29 @@ public class RScriptService {
 
     protected Path saveRScript(MultipartFile uploadedFile) throws IOException {
         String originalFilename = uploadedFile.getOriginalFilename();
-        if (originalFilename == null) {
-            throw new IllegalArgumentException("Uploaded file has a null original filename");
+        if (originalFilename == null || originalFilename.isEmpty()) {
+            throw new IllegalArgumentException("Original filename is null or empty.");
         }
-        Path filePath = Paths.get(uploadDir).resolve(originalFilename);
+        if (!originalFilename.toUpperCase().endsWith(".R")) {
+            throw new IllegalArgumentException("Invalid file type. Only .R files are allowed.");
+        }
+        Path uploadDirPath = Paths.get(workingDir);
+        Path filePath = uploadDirPath.resolve(originalFilename);
         uploadedFile.transferTo(filePath.toFile());
         return filePath;
     }
 
     protected byte[] executeRScriptAndRetrievePlot(Path scriptFilePath) throws IOException, InterruptedException {
-        Path outputFilePath = scriptFilePath.resolveSibling(scriptFilePath.getFileName().toString().replace(".R", ".png"));
+        Path outputFilePath = scriptFilePath.resolveSibling(
+                scriptFilePath.getFileName().toString().replace(".R", ".png"));
+
         String modifiedScriptContent = modifyScriptContent(scriptFilePath, outputFilePath.getFileName().toString());
         Path modifiedScriptPath = saveModifiedScript(modifiedScriptContent, scriptFilePath.getFileName().toString());
         try {
             executeRScript(modifiedScriptPath, outputFilePath);
+
             Files.move(outputFilePath, scriptFilePath.resolveSibling(outputFilePath.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+
             return Files.readAllBytes(scriptFilePath.resolveSibling(outputFilePath.getFileName()));
         } catch (IOException | InterruptedException e) {
             log.error("Error during R script execution: {}", e.getMessage());
@@ -72,6 +81,9 @@ public class RScriptService {
      */
     protected String modifyScriptContent(Path scriptFilePath, String outputFileName) throws IOException {
         String scriptContent = Files.readString(scriptFilePath);
+
+        outputFileName = (outputFileName != null) ? outputFileName : "default_output";
+
         // Modify script to save the plot as a PNG
         if (scriptContent.contains("plot(")) {
             scriptContent = scriptContent.replace("plot(", String.format("png('%s')%splot(", outputFileName, System.lineSeparator()));
@@ -86,12 +98,16 @@ public class RScriptService {
     }
 
     protected Path saveModifiedScript(String modifiedScriptContent, String scriptFileName) throws IOException {
-        Path modifiedScriptPath = Paths.get(uploadDir, "modified_" + scriptFileName.replace(" ", "_"));
+        Path modifiedScriptPath = Paths.get(workingDir, "modified_" + scriptFileName.replace(" ", "_"));
         Files.write(modifiedScriptPath, modifiedScriptContent.getBytes(), StandardOpenOption.CREATE);
         return modifiedScriptPath;
     }
 
     protected void executeRScript(Path modifiedScriptPath, Path outputFilePath) throws IOException, InterruptedException {
+        if (modifiedScriptPath == null || modifiedScriptPath.getFileName() == null) {
+            // Handle the null case, throw an exception, or log an error
+            throw new IllegalArgumentException("Invalid modifiedScriptPath");
+        }
         String command = rScriptPath + " " + modifiedScriptPath.toAbsolutePath();
 
         // The external R executable creates a PNG that is named like the script itself

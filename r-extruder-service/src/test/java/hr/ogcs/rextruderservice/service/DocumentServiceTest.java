@@ -25,7 +25,7 @@ class DocumentServiceTest {
 
         // Given
         ClassLoader classLoader = getClass().getClassLoader();
-        var plotAsByte = classLoader.getResource("plot.jpeg").getFile().getBytes();
+        var plotAsByte = classLoader.getResource("testfile.png").getFile().getBytes();
 
         // When
         var result = documentService.generateWord(plotAsByte);

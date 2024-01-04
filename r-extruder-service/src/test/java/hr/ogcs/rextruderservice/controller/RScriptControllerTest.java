@@ -19,8 +19,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 class RScriptControllerTest {
@@ -43,7 +42,7 @@ class RScriptControllerTest {
         byte[] expectedWordBytes = "Generated Word Document".getBytes();
 
         // When
-        when(rScriptService.uploadAndExecuteRScript(mockFile)).thenReturn(expectedWordBytes);
+        when(rScriptService.createPlotFromRScript(mockFile)).thenReturn(expectedWordBytes);
         ResponseEntity<byte[]> responseEntity = rScriptController.uploadAndDownload(mockFile);
 
         // Then
@@ -54,17 +53,17 @@ class RScriptControllerTest {
     }
 
     @Test
-    void should_throw_error_for_upload_and_download() throws IOException, InterruptedException, InvalidFormatException {
+    void should_throw_error_for_upload_and_download() throws IOException, InterruptedException {
         // Given
         MockMultipartFile mockFile = new MockMultipartFile("file", "testScript.R", MediaType.TEXT_PLAIN_VALUE, "Test script content".getBytes());
 
         // When
-        when(rScriptService.uploadAndExecuteRScript(mockFile)).thenThrow(new IOException("Error executing script"));
-        ResponseEntity<byte[]> responseEntity = rScriptController.uploadAndDownload(mockFile);
+        when(rScriptService.createPlotFromRScript(mockFile)).thenThrow(new IOException("Error executing script"));
 
         // Then
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-        assertNull(responseEntity.getBody());
+        assertThrows(IOException.class, () -> {
+            rScriptController.uploadAndDownload(mockFile);
+        });
     }
 
 }
