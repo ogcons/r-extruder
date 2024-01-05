@@ -15,9 +15,9 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -71,5 +71,38 @@ class S3ServiceTest {
 
         // Then
         assertEquals(List.of("doc1", "doc2"), documentList);
+    }
+
+    @Test
+    void should_handle_upload_exceptions() throws IOException, InterruptedException, InvalidFormatException {
+        // Given
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
+
+        // When
+        doThrow(S3Exception.class).when(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+
+        // Then
+        assertThrows(IOException.class, () -> s3Service.uploadFileToS3(mockMultipartFile));
+    }
+
+    @Test
+    void should_handle_download_exceptions(){
+        // Given
+        String objectKey = "test.docx";
+
+        // When
+        when(s3Client.getObjectAsBytes(any(GetObjectRequest.class))).thenThrow(S3Exception.class);
+
+        // Then
+        assertThrows(IOException.class, () -> s3Service.downloadFileFromS3(objectKey));
+    }
+
+    @Test
+    void should_handle_list_exceptions() {
+        // When
+        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenThrow(S3Exception.class);
+
+        // Then
+        assertThrows(IOException.class, () -> s3Service.listFilesOfBucket());
     }
 }

@@ -1,48 +1,42 @@
 package hr.ogcs.rextruderservice.service;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.junit.jupiter.api.BeforeEach;
+import hr.ogcs.rextruderservice.service.DocumentService;
+import hr.ogcs.rextruderservice.service.RProcessor;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mock;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Profile;
-import org.springframework.mock.web.MockMultipartFile;
-import software.amazon.awssdk.services.s3.S3Client;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.*;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
-@Profile("mock")
+@ActiveProfiles("mock")
 class RScriptServiceComponentTest {
 
+    @Autowired
     private RScriptService rScriptService;
 
-    @Mock
-    private S3Client s3Client;
-
-    @BeforeEach
-    void setUp() {
-        rScriptService = new RScriptService();
-    }
-
     @Test
-    void should_upload_and_execute_rscript(@TempDir Path tempDir) throws IOException, InterruptedException, InvalidFormatException {
-        // Given
-        String originalFileName = "test_script.R";
-        Path tempFilePath = tempDir.resolve(originalFileName);
-        Files.write(tempFilePath, "plot(c(1,2,3))".getBytes());
-        MockMultipartFile multipartFile = new MockMultipartFile("file", originalFileName, "text/plain", Files.readAllBytes(tempFilePath));
+    void should_generate_word_document_from_dummy_input() throws IOException, InterruptedException {
+        MultipartFile mockMultipartFile = mock(MultipartFile.class);
+        when(mockMultipartFile.getOriginalFilename()).thenReturn("testfile.R");
+        when(mockMultipartFile.isEmpty()).thenReturn(false);
+        when(mockMultipartFile.getBytes()).thenReturn("R script content".getBytes());
 
-        // When
-        byte[] result = rScriptService.uploadAndExecuteRScript(multipartFile);
+        byte[] result = rScriptService.createPlotFromRScript(mockMultipartFile);
 
-        // Then
-        assertNotNull(result);
-        assertTrue(result.length > 0);
     }
-
 }

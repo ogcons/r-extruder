@@ -16,8 +16,8 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest(PersistWordController.class)
-class PersistWordControllerComponentTest {
+@WebMvcTest(DocumentController.class)
+class DocumentControllerComponentTest {
 
     @Autowired
     private MockMvc mockMvc;

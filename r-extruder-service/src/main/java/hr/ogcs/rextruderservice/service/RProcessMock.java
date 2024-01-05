@@ -1,8 +1,8 @@
 package hr.ogcs.rextruderservice.service;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -10,8 +10,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+/**
+ * Creates a dummy image for the document processing.
+ * The image is normally created by R script and this behavior is mocked here.
+ */
 @Profile("mock")
-@Component
+@Service
 public class RProcessMock implements RProcessor {
 
     @Override

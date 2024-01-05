@@ -31,15 +31,19 @@ public class S3Service {
         this.bucketName = bucketName;
     }
 
-    public String uploadFileToS3(MultipartFile wordFile) throws IOException, InterruptedException, InvalidFormatException {
-        String objectKey = counter.getAndIncrement() + "_" + wordFile.getOriginalFilename();
+    public String uploadFileToS3(MultipartFile wordFile) throws IOException {
+        try {
+            String objectKey = counter.getAndIncrement() + "_" + wordFile.getOriginalFilename();
 
-        s3Client.putObject(PutObjectRequest.builder()
-                .bucket(s3Bucket)
-                .key(objectKey)
-                .build(), RequestBody.fromInputStream(wordFile.getInputStream(), wordFile.getSize()));
+            s3Client.putObject(PutObjectRequest.builder()
+                    .bucket(s3Bucket)
+                    .key(objectKey)
+                    .build(), RequestBody.fromInputStream(wordFile.getInputStream(), wordFile.getSize()));
 
-        return objectKey;
+            return objectKey;
+        } catch (S3Exception e) {
+            throw new IOException("Failed to download Word document from S3", e);
+        }
     }
 
     public byte[] downloadFileFromS3(String objectKey) throws IOException {

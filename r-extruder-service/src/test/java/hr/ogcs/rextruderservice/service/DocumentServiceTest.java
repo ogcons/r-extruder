@@ -3,6 +3,7 @@ package hr.ogcs.rextruderservice.service;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class DocumentServiceTest {
 
@@ -42,9 +44,19 @@ class DocumentServiceTest {
 
     @Test
     void should_throw_exception_when_image_is_empty() {
+
         // When and Then
         assertThrows(IllegalArgumentException.class, () -> documentService.generateWord(new byte[0]));
     }
 
+    @Test
+    void should_throw_exception_on_error_during_document_generation() throws IOException {
 
+        // Given
+        DocumentService documentServiceMock = Mockito.mock(DocumentService.class);
+        when(documentServiceMock.generateWord(any())).thenThrow(new IOException("Simulated error"));
+
+        // When and Then
+        assertThrows(IOException.class, () -> documentServiceMock.generateWord(new byte[1]));
+    }
 }

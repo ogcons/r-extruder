@@ -12,23 +12,24 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PersistWordControllerTest {
+class DocumentControllerTest {
 
     @Mock
     private S3Service s3Service;
 
     @InjectMocks
-    private PersistWordController s3Controller;
+    private DocumentController s3Controller;
 
     @Test
     void should_upload_to_s3() throws IOException, InterruptedException, InvalidFormatException {
@@ -73,5 +74,43 @@ class PersistWordControllerTest {
         // Then
         assertEquals(documentList, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+    @Test
+    void should_handle_upload_exception() throws IOException, InterruptedException, InvalidFormatException {
+        // Given
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
+
+        // When
+        doThrow(IOException.class).when(s3Service).uploadFileToS3(any(MultipartFile.class));
+        ResponseEntity<String> response = s3Controller.uploadToS3(mockMultipartFile);
+
+        // Then
+        assertEquals("Failed to upload Word document to S3", response.getBody());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void should_handle_download_exception() throws IOException {
+        // Given
+        String fileName = "test.docx";
+
+        // When
+        doThrow(IOException.class).when(s3Service).downloadFileFromS3(fileName);
+        ResponseEntity<Resource> response = s3Controller.downloadDocument(fileName);
+
+        // Then
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void should_handle_list_exception() throws IOException {
+        // When
+        doThrow(IOException.class).when(s3Service).listFilesOfBucket();
+        ResponseEntity<List<String>> response = s3Controller.listDocuments();
+
+        // Then
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNull(response.getBody());
     }
 }

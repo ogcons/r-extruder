@@ -2,7 +2,6 @@ package hr.ogcs.rextruderservice.controller;
 
 import hr.ogcs.rextruderservice.service.RScriptService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +15,11 @@ import java.io.IOException;
 @Slf4j
 public class RScriptController {
 
-    @Autowired
-    private RScriptService rScriptService;
+    private final RScriptService rScriptService;
+
+    public RScriptController(RScriptService rScriptService) {
+        this.rScriptService = rScriptService;
+    }
 
     @PostMapping("/extractors")
     public ResponseEntity<byte[]> uploadAndDownload(@RequestParam("file") MultipartFile file) throws IOException, InterruptedException {

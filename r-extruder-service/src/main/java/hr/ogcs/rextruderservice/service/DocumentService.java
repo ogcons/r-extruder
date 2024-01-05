@@ -22,7 +22,7 @@ public class DocumentService {
 
     public byte[] generateWord(byte[] plotBytes) throws IOException {
         if (plotBytes.length == 0 ) {
-            throw new IllegalArgumentException("Image is empty!");
+            throw new IllegalArgumentException("No image is given, empty bytes!");
         }
         try {
             // Create Word document

@@ -1,8 +1,6 @@
 package hr.ogcs.rextruderservice.controller;
 
 import hr.ogcs.rextruderservice.service.S3Service;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -17,18 +15,20 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-public class PersistWordController {
+public class DocumentController {
 
-    @Autowired
-    private S3Service s3Service;
+    private final S3Service s3Service;
+
+    public DocumentController(S3Service s3Service) {
+        this.s3Service = s3Service;
+    }
 
     @PostMapping("/extractors/s3")
     public ResponseEntity<String> uploadToS3(@RequestPart("file") MultipartFile file) {
         try {
             String s3ObjectKey = s3Service.uploadFileToS3(file);
             return ResponseEntity.ok("Word document uploaded to S3 with key: " + s3ObjectKey);
-        } catch (IOException | InterruptedException | InvalidFormatException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
             return ResponseEntity.status(500).body("Failed to upload Word document to S3");
         }
     }
