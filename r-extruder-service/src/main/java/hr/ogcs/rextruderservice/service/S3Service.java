@@ -52,7 +52,7 @@ public class S3Service {
     @Cacheable(cacheNames = "wordDocument", key = "#objectKey")
     public byte[] downloadFileFromS3(String objectKey) throws IOException {
         try {
-            log.info("Fetching Word Document from S3");
+            log.info("Retrieving Word document from storage with id: {}", objectKey);
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(objectKey)
