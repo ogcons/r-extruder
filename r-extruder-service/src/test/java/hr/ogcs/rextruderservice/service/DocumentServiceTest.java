@@ -6,12 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 class DocumentServiceTest {
 
@@ -24,10 +25,9 @@ class DocumentServiceTest {
 
     @Test
     void should_generate_word_from_given_plot_image() throws IOException {
-
         // Given
         ClassLoader classLoader = getClass().getClassLoader();
-        var plotAsByte = classLoader.getResource("testfile.png").getFile().getBytes();
+        var plotAsByte = Objects.requireNonNull(classLoader.getResource("testfile.png")).getFile().getBytes();
 
         // When
         var result = documentService.generateWord(plotAsByte);
@@ -44,14 +44,12 @@ class DocumentServiceTest {
 
     @Test
     void should_throw_exception_when_image_is_empty() {
-
         // When and Then
         assertThrows(IllegalArgumentException.class, () -> documentService.generateWord(new byte[0]));
     }
 
     @Test
     void should_throw_exception_on_error_during_document_generation() throws IOException {
-
         // Given
         DocumentService documentServiceMock = Mockito.mock(DocumentService.class);
         when(documentServiceMock.generateWord(any())).thenThrow(new IOException("Simulated error"));

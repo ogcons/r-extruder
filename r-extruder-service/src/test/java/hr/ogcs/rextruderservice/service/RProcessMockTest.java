@@ -21,7 +21,6 @@ class RProcessMockTest {
 
     @Test
     void should_create_dummy_png_from_dummy_rfile() throws IOException, InterruptedException {
-
         // Given
         var command = "";
         var outputfilename = "r-script.png";

@@ -1,25 +1,23 @@
 package hr.ogcs.rextruderservice.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Slf4j
 @Service
 public class S3Service {
 
-    private static final AtomicInteger counter = new AtomicInteger(0);
     private final S3Client s3Client;
     private final String bucketName;
 
@@ -31,18 +29,22 @@ public class S3Service {
         this.bucketName = bucketName;
     }
 
-    public String uploadFileToS3(MultipartFile wordFile) throws IOException {
+    public String uploadFileToS3(byte[] wordBytes, String originalFilename) throws IOException {
         try {
-            String objectKey = counter.getAndIncrement() + "_" + wordFile.getOriginalFilename();
+            String uuid = UUID.randomUUID().toString().substring(0, 8);
+            String objectKey = originalFilename.replace(" ","_") + "_" + uuid + ".docx";
 
-            s3Client.putObject(PutObjectRequest.builder()
-                    .bucket(s3Bucket)
-                    .key(objectKey)
-                    .build(), RequestBody.fromInputStream(wordFile.getInputStream(), wordFile.getSize()));
+            // Create an InputStream from the byte array
+            try (InputStream inputStream = new ByteArrayInputStream(wordBytes)) {
+                s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(s3Bucket)
+                        .key(objectKey)
+                        .build(), RequestBody.fromInputStream(inputStream, wordBytes.length));
+            }
 
             return objectKey;
         } catch (S3Exception e) {
-            throw new IOException("Failed to download Word document from S3", e);
+            throw new IOException("Failed to upload Word document to S3", e);
         }
     }
 
@@ -74,7 +76,7 @@ public class S3Service {
 
             return s3Objects.stream()
                     .map(S3Object::key)
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (S3Exception e) {
             throw new IOException("Failed to list files in S3 bucket", e);
         }

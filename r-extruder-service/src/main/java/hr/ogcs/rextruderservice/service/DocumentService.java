@@ -24,10 +24,7 @@ public class DocumentService {
         if (plotBytes.length == 0 ) {
             throw new IllegalArgumentException("No image is given, empty bytes!");
         }
-        try {
-            // Create Word document
-            XWPFDocument document = new XWPFDocument();
-
+        try (XWPFDocument document = new XWPFDocument()) {
             XWPFParagraph paragraph = document.createParagraph();
             XWPFRun run = paragraph.createRun();
 
@@ -45,12 +42,8 @@ public class DocumentService {
 
             return baos.toByteArray();
         } catch (Exception e) {
-            // Log the exception for troubleshooting purposes
             log.error("Error during Word document generation: {}", e.getMessage());
-
-            // Rethrow the exception as IOException
             throw new IOException("Error during Word document generation", e);
         }
     }
-
 }

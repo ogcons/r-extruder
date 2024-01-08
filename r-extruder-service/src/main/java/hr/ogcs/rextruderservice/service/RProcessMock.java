@@ -1,7 +1,6 @@
 package hr.ogcs.rextruderservice.service;
 
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;

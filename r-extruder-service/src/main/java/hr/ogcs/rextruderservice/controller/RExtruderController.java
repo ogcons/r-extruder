@@ -1,6 +1,8 @@
 package hr.ogcs.rextruderservice.controller;
 
+import hr.ogcs.rextruderservice.service.RScriptService;
 import hr.ogcs.rextruderservice.service.S3Service;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -12,24 +14,31 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api")
-public class DocumentController {
-
+@Slf4j
+public class RExtruderController {
+    private final RScriptService rScriptService;
     private final S3Service s3Service;
 
-    public DocumentController(S3Service s3Service) {
+    public RExtruderController(RScriptService rScriptService, S3Service s3Service) {
+        this.rScriptService = rScriptService;
         this.s3Service = s3Service;
     }
 
-    @PostMapping("/extractors/s3")
-    public ResponseEntity<String> uploadToS3(@RequestPart("file") MultipartFile file) {
+    @PostMapping("/extractors")
+    public ResponseEntity<String> createAndUpload(@RequestParam("file") MultipartFile file) throws InterruptedException {
         try {
-            String s3ObjectKey = s3Service.uploadFileToS3(file);
-            return ResponseEntity.ok("Word document uploaded to S3 with key: " + s3ObjectKey);
+            byte[] wordBytes = rScriptService.createPlotFromRScript(file);
+
+            String s3ObjectKey = s3Service.uploadFileToS3(wordBytes, Objects.requireNonNull(file.getOriginalFilename()));
+
+            return ResponseEntity.ok("Word document uploaded to S3 with key:" + s3ObjectKey);
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Failed to upload Word document to S3");
+            log.error("Error during combined operation: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to perform the combined operation");
         }
     }
 

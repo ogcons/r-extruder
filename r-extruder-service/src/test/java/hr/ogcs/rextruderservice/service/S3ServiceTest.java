@@ -1,12 +1,10 @@
 package hr.ogcs.rextruderservice.service;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockMultipartFile;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -30,16 +28,18 @@ class S3ServiceTest {
     private S3Service s3Service;
 
     @Test
-    void should_upload_word_to_s3() throws IOException, InterruptedException, InvalidFormatException {
+    void should_upload_word_to_s3() throws IOException{
         // Given
-        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
+        byte [] content = "Test content".getBytes();
+        String originalFileName = "filename";
 
         // When
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenReturn(PutObjectResponse.builder().build());
-        String objectKey = s3Service.uploadFileToS3(mockMultipartFile);
+        String objectKey = s3Service.uploadFileToS3(content, originalFileName);
+        String actualFileName = objectKey.substring(0, objectKey.lastIndexOf('_'));
 
         // Then
-        assertEquals("0_test.docx", objectKey);
+        assertEquals(originalFileName, actualFileName);
     }
 
     @Test
@@ -73,16 +73,16 @@ class S3ServiceTest {
         assertEquals(List.of("doc1", "doc2"), documentList);
     }
 
-    @Test
-    void should_handle_upload_exceptions() throws IOException, InterruptedException, InvalidFormatException {
+   @Test
+    void should_handle_upload_exceptions(){
         // Given
-        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
-
+        byte [] content = "Test content".getBytes();
+        String originalFileName = "filename";
         // When
         doThrow(S3Exception.class).when(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
 
         // Then
-        assertThrows(IOException.class, () -> s3Service.uploadFileToS3(mockMultipartFile));
+        assertThrows(IOException.class, () -> s3Service.uploadFileToS3(content,originalFileName));
     }
 
     @Test
