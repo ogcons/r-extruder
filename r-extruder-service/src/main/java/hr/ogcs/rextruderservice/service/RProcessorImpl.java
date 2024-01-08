@@ -31,7 +31,7 @@ public class RProcessorImpl implements RProcessor {
         // Split the command into an array of strings
         String[] commandArray = command.split("\\s+");
 
-        // Set the working directory to the uploadDir
+        // Set the working directory to the workingDir
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .command(Arrays.asList(commandArray))
                 .directory(destinationPath.toFile());

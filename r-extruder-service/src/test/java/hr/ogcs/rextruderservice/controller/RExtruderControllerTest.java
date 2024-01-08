@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,7 +29,7 @@ class RExtruderControllerTest {
     private S3Service s3Service;
 
     @Test
-    void createAndUpload() throws Exception {
+    void should_create_and_upload_in_s3_bucket() throws Exception {
         // Given
         MockMultipartFile file = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
         when(rScriptService.createPlotFromRScript(any())).thenReturn("Dummy Word Bytes".getBytes());
@@ -42,7 +43,7 @@ class RExtruderControllerTest {
     }
 
     @Test
-    void downloadDocument() throws Exception {
+    void should_download_document_from_s3_bucket() throws Exception {
         // Given
         String fileName = "dummy_key.docx";
         byte[] documentBytes = "Dummy Word Bytes".getBytes();
@@ -56,7 +57,7 @@ class RExtruderControllerTest {
     }
 
     @Test
-    void listDocuments() throws Exception {
+    void should_list_documents_from_s3_bucket() throws Exception {
         // Given
         when(s3Service.listFilesOfBucket()).thenReturn(Arrays.asList("file1.docx", "file2.docx"));
 
@@ -66,5 +67,38 @@ class RExtruderControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.size()").value(2))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0]").value("file1.docx"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[1]").value("file2.docx"));
+    }
+
+    @Test
+    void should_handle_internal_server_error_during_upload() throws Exception {
+        // Given
+        MockMultipartFile file = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
+        when(rScriptService.createPlotFromRScript(any())).thenThrow(new IOException("Simulated error"));
+
+        // When
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/extractors")
+                        .file(file))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError());
+    }
+
+    @Test
+    void should_handle_internal_server_error_during_download() throws Exception {
+        // Given
+        String fileName = "dummy_key.docx";
+        when(s3Service.downloadFileFromS3(fileName)).thenThrow(new IOException("Simulated error"));
+
+        // When
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/extractors/s3/{fileName}", fileName))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError());
+    }
+
+    @Test
+    void should_handle_internal_server_error_during_listing() throws Exception {
+        // Given
+        when(s3Service.listFilesOfBucket()).thenThrow(new IOException("Simulated error"));
+
+        // When
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/extractors/s3/"))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError());
     }
 }

@@ -40,9 +40,8 @@ class RScriptServiceTest {
 
     @Test
     void should_save_rscript_and_return_valid_path() throws IOException {
-
         // Given
-        String uploadDir = ".";
+        String workingDir = ".";
         String originalFilename = "testfile.R";
         MockMultipartFile mockMultipartFile = new MockMultipartFile(
                 "file",
@@ -56,14 +55,13 @@ class RScriptServiceTest {
 
         // Then
         assertNotNull(resultPath);
-        assertEquals(Path.of(uploadDir, originalFilename), resultPath);
+        assertEquals(Path.of(workingDir, originalFilename), resultPath);
 
         Files.deleteIfExists(resultPath);
     }
 
     @Test
     void should_throw_exception_for_null_or_empty_filename_in_save_script() {
-
         // Given
         MockMultipartFile mockMultipartFile = new MockMultipartFile(
                 "file",
@@ -79,7 +77,6 @@ class RScriptServiceTest {
 
     @Test
     void should_throw_exception_for_invalid_file_in_save_script() {
-
         // Given
         String originalFilename = "file.txt";
         MockMultipartFile mockMultipartFile = new MockMultipartFile(
@@ -95,7 +92,6 @@ class RScriptServiceTest {
 
     @Test
     void should_modify_rscript_content() throws IOException {
-
         // Given
         String scriptContent = "plot(data); KinReport(results);";
         String outputFileName = "output.png";
@@ -115,7 +111,6 @@ class RScriptServiceTest {
 
     @Test
     void should_save_modified_rscript() throws IOException {
-
         // Given
         String modifiedScriptContent = "modified script content";
         String scriptFileName = "test_script.R";
@@ -134,7 +129,6 @@ class RScriptServiceTest {
 
     @Test
     void should_execute_rscript_with_valid_paths() throws IOException, InterruptedException {
-
         // Given
         Path modifiedScriptPath = Files.createTempFile("modified",".R");
         Path outputFilePath = Files.createTempFile("output", ".png");
@@ -166,7 +160,6 @@ class RScriptServiceTest {
 
     @Test
     void should_throw_exception_for_process_fail() throws IOException, InterruptedException {
-
         // Given
         Path modifiedScriptPath = Files.createTempFile("modified", ".R");
         Path outputFilePath = Files.createTempFile("output", ".png");
@@ -197,7 +190,6 @@ class RScriptServiceTest {
 
     @Test
     void should_throw_exception_for_invalid_path_in_execute_rscript() throws IOException {
-
         // Given
         Path outputFilePath = Paths.get(".");
 
@@ -211,7 +203,6 @@ class RScriptServiceTest {
 
     @Test
     void should_execute_rscript_and_retrieve_plot() throws IOException, InterruptedException {
-
             // Given
             Path resourceFile = Paths.get("src","test","resources", "testfile.R");
 
@@ -236,7 +227,6 @@ class RScriptServiceTest {
 
     @Test
     void should_throw_exception_for_failed_execution_of_retrieve_plot() throws IOException, InterruptedException {
-
         // Given
         Path resourceFile = Paths.get("src", "test", "resources", "testfile.R");
 
@@ -259,7 +249,6 @@ class RScriptServiceTest {
 
     @Test
     void should_throw_exception_for_invalid_file_in_execute_and_retrieve_plot() throws IOException {
-
         // Given
         Path invalidFilePath = Paths.get("non_existent_file.R");
 
@@ -276,7 +265,6 @@ class RScriptServiceTest {
 
     @Test
     void should_create_plot_from_rscript() throws IOException, InterruptedException {
-
         // Given
         RScriptService rScriptService = new RScriptService(documentService, rProcessor);
 
@@ -313,7 +301,6 @@ class RScriptServiceTest {
 
     @Test
     void should_throw_exception_for_failed_creating_plot() throws IOException {
-
         // Given
         String originalFileName = "test_script.R";
         MockMultipartFile multipartFile = new MockMultipartFile(
@@ -341,5 +328,4 @@ class RScriptServiceTest {
         Files.deleteIfExists(Path.of(originalFileName));
         Files.deleteIfExists(Path.of(modifiedFileName));
     }
-
 }

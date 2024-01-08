@@ -74,10 +74,10 @@ public class RScriptService {
 
     /**
      * Extends the original R script by code that enables the plotting of PNG files.
-     * @param scriptFilePath
-     * @param outputFileName
-     * @return
-     * @throws IOException
+     * @param scriptFilePath R script file path
+     * @param outputFileName R script file name
+     * @return modified R script content
+     * @throws IOException Can happen if there is no R script
      */
     protected String modifyScriptContent(Path scriptFilePath, String outputFileName) throws IOException {
         String scriptContent = Files.readString(scriptFilePath);
@@ -125,5 +125,4 @@ public class RScriptService {
             throw new IOException("Failed to execute modified R script. Exit code: " + exitCode);
         }
     }
-
 }

@@ -1,6 +1,5 @@
 package hr.ogcs.rextruderservice.service;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,7 +28,7 @@ class S3ServiceTest {
     private S3Service s3Service;
 
     @Test
-    void should_upload_word_to_s3() throws IOException, InterruptedException, InvalidFormatException {
+    void should_upload_word_to_s3() throws IOException{
         // Given
         byte [] content = "Test content".getBytes();
         String originalFileName = "filename";
@@ -75,7 +74,7 @@ class S3ServiceTest {
     }
 
    @Test
-    void should_handle_upload_exceptions() throws IOException, InterruptedException, InvalidFormatException {
+    void should_handle_upload_exceptions(){
         // Given
         byte [] content = "Test content".getBytes();
         String originalFileName = "filename";

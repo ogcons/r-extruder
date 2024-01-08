@@ -3,7 +3,6 @@ package hr.ogcs.rextruderservice.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -14,8 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -79,7 +76,7 @@ public class S3Service {
 
             return s3Objects.stream()
                     .map(S3Object::key)
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (S3Exception e) {
             throw new IOException("Failed to list files in S3 bucket", e);
         }
