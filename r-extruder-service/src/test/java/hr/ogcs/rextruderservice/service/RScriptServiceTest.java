@@ -245,6 +245,10 @@ class RScriptServiceTest {
 
         // Then
         assertThrows(InterruptedException.class, () -> rScriptService.executeRScriptAndRetrievePlot(resourceFile));
+
+        // Clean up
+        Files.deleteIfExists(Path.of("." + File.separator + "modified_testfile.R"));
+
     }
 
     @Test
