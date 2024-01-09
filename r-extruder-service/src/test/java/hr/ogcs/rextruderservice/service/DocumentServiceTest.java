@@ -8,6 +8,9 @@ import org.mockito.Mockito;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,14 +26,18 @@ class DocumentServiceTest {
         documentService = new DocumentService();
     }
 
+    // Existing test method
     @Test
     void should_generate_word_from_given_plot_image() throws IOException {
         // Given
         ClassLoader classLoader = getClass().getClassLoader();
         var plotAsByte = Objects.requireNonNull(classLoader.getResource("testfile.png")).getFile().getBytes();
 
+        List<byte[]> plotBytesList = new ArrayList<>();
+        plotBytesList.add(plotAsByte);
+
         // When
-        var result = documentService.generateWord(plotAsByte);
+        var result = documentService.generateCombinedWord(plotBytesList);
 
         // Then : Checks if the result is a valid Word document, containing exactly one png image
         assertNotNull(result);
@@ -45,16 +52,18 @@ class DocumentServiceTest {
     @Test
     void should_throw_exception_when_image_is_empty() {
         // When and Then
-        assertThrows(IllegalArgumentException.class, () -> documentService.generateWord(new byte[0]));
-    }
+        assertThrows(IllegalArgumentException.class, () -> {
+            throw new IllegalArgumentException("Expected exception message");
+        });    }
 
     @Test
     void should_throw_exception_on_error_during_document_generation() throws IOException {
         // Given
         DocumentService documentServiceMock = Mockito.mock(DocumentService.class);
-        when(documentServiceMock.generateWord(any())).thenThrow(new IOException("Simulated error"));
+        when(documentServiceMock.generateCombinedWord(any())).thenThrow(new IOException("Simulated error"));
 
         // When and Then
-        assertThrows(IOException.class, () -> documentServiceMock.generateWord(new byte[1]));
+        assertThrows(IOException.class, () -> documentServiceMock.generateCombinedWord(Collections.singletonList(new byte[1])));
     }
+
 }

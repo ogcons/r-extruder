@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -29,15 +31,17 @@ public class RScriptService {
         this.rProcessor = rProcessor;
     }
 
-    public byte[] createPlotFromRScript(MultipartFile uploadedFile) throws IOException, InterruptedException {
-        try {
+    public byte[] createPlotFromRScripts(MultipartFile[] uploadedFiles) throws IOException, InterruptedException {
+        List<byte[]> allPlots = new ArrayList<>();
+
+        for (MultipartFile uploadedFile : uploadedFiles) {
             Path scriptFilePath = saveRScript(uploadedFile);
             byte[] plotBytes = executeRScriptAndRetrievePlot(scriptFilePath);
-            return documentService.generateWord(plotBytes);
-        } catch (IOException | InterruptedException e) {
-            log.error("IOException during R script execution: {}", e.getMessage());
-            throw e;
+            allPlots.add(plotBytes);
         }
+
+        // Combine all plots into one Word document
+        return documentService.generateCombinedWord(allPlots);
     }
 
     protected Path saveRScript(MultipartFile uploadedFile) throws IOException {

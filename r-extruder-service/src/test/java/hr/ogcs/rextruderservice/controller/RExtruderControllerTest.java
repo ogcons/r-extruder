@@ -31,17 +31,19 @@ class RExtruderControllerTest {
     @Test
     void should_create_and_upload_in_s3_bucket() throws Exception {
         // Given
-        MockMultipartFile file = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
-        when(rScriptService.createPlotFromRScript(any())).thenReturn("Dummy Word Bytes".getBytes());
+        MockMultipartFile file1 = new MockMultipartFile("files", "test1.docx", "application/octet-stream", "Test content 1".getBytes());
+        MockMultipartFile file2 = new MockMultipartFile("files", "test2.docx", "application/octet-stream", "Test content 2".getBytes());
+
+        when(rScriptService.createPlotFromRScripts(any())).thenReturn("Dummy Word Bytes".getBytes());
         when(s3Service.uploadFileToS3(any(byte[].class), any(String.class))).thenReturn("dummy_key.docx");
 
         // When
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/extractors")
-                        .file(file))
+                        .file(file1)
+                        .file(file2)) // Provide multiple .file() entries for each file in the array
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string("Word document uploaded to S3 with key:dummy_key.docx"));
+                .andExpect(MockMvcResultMatchers.content().string("Word document uploaded to S3 with key: dummy_key.docx"));
     }
-
     @Test
     void should_download_document_from_s3_bucket() throws Exception {
         // Given
@@ -73,7 +75,7 @@ class RExtruderControllerTest {
     void should_handle_internal_server_error_during_upload() throws Exception {
         // Given
         MockMultipartFile file = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
-        when(rScriptService.createPlotFromRScript(any())).thenThrow(new IOException("Simulated error"));
+        when(rScriptService.createPlotFromRScripts(any())).thenThrow(new IOException("Simulated error"));
 
         // When
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/extractors")
