@@ -2,6 +2,7 @@ package hr.ogcs.rextruderservice.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -48,8 +49,10 @@ public class S3Service {
         }
     }
 
+    @Cacheable(cacheNames = "wordDocument", key = "#objectKey")
     public byte[] downloadFileFromS3(String objectKey) throws IOException {
         try {
+            log.info("Retrieving Word document from storage with id: {}", objectKey);
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(objectKey)
