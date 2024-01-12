@@ -29,13 +29,14 @@ public class RExtruderController {
     }
 
     @PostMapping("/extractors")
-    public ResponseEntity<String> createAndUpload(@RequestParam("file") MultipartFile file) throws InterruptedException {
+    public ResponseEntity<String> createAndUpload(@RequestParam("files") MultipartFile[] files) throws InterruptedException {
         try {
-            byte[] wordBytes = rScriptService.createPlotFromRScript(file);
+            byte[] wordBytes = rScriptService.createPlotFromRScripts(files);
 
-            String s3ObjectKey = s3Service.uploadFileToS3(wordBytes, Objects.requireNonNull(file.getOriginalFilename()));
+            // Use the original file name of the first uploaded file
+            String s3ObjectKey = s3Service.uploadFileToS3(wordBytes, Objects.requireNonNull(files[0].getOriginalFilename()));
 
-            return ResponseEntity.ok("Word document uploaded to S3 with key:" + s3ObjectKey);
+            return ResponseEntity.ok("Word document uploaded to S3 with key: " + s3ObjectKey);
         } catch (IOException e) {
             log.error("Error during combined operation: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to perform the combined operation");

@@ -35,7 +35,6 @@ public class S3Service {
             String uuid = UUID.randomUUID().toString().substring(0, 8);
             String objectKey = originalFilename.replace(" ","_") + "_" + uuid + ".docx";
 
-            // Create an InputStream from the byte array
             try (InputStream inputStream = new ByteArrayInputStream(wordBytes)) {
                 s3Client.putObject(PutObjectRequest.builder()
                         .bucket(s3Bucket)
