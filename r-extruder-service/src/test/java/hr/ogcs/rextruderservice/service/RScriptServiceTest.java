@@ -94,7 +94,7 @@ class RScriptServiceTest {
     @Test
     void should_modify_rscript_content() throws IOException {
         // Given
-        String scriptContent = "plot(data); KinReport(results);";
+        String scriptContent = "plot(data); Fit    <- try(KinEval(plotfit   = TRUE)) KinReport();";
         String outputFileName = "output.png";
 
         Path tempScriptFile = Files.createTempFile("testScript", ".R");

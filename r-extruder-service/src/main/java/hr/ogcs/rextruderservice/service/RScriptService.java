@@ -88,15 +88,29 @@ public class RScriptService {
 
         outputFileName = (outputFileName != null) ? outputFileName : "default_output";
 
-        // Modify script to save the plot as a PNG
+        // Modify script: add png() to save plot as a picture
         if (scriptContent.contains("plot(")) {
             scriptContent = scriptContent.replace("plot(", String.format("png('%s')%splot(", outputFileName, System.lineSeparator()));
             scriptContent += "\ndev.off()";
         }
-        if (scriptContent.contains("KinReport(")) {
-            int index = scriptContent.indexOf("KinReport(");
-            String pngCommand = String.format("png('%s')%s", outputFileName, System.lineSeparator());
-            scriptContent = scriptContent.substring(0, index) + pngCommand + scriptContent.substring(index);
+        // Modify script: add pdf() png(), set plotfit to FALSE and add dev.off()
+        if (scriptContent.contains("Fit    <- try(KinEval(")) {
+            int fitIndex = scriptContent.indexOf("Fit    <- try(KinEval(");
+            int endOfFit = scriptContent.indexOf(")", fitIndex) + 1;
+            String fitSection = scriptContent.substring(fitIndex, endOfFit);
+
+            fitSection = String.format("pdf(\"%s\")%n", outputFileName.replace(".png", ".pdf")) +
+                    String.format("png(\"%s\")%n", outputFileName) +
+                    fitSection;
+            if (scriptContent.contains("plotfit   = TRUE")) {
+                fitSection = fitSection.replace("plotfit   = TRUE", "plotfit   = FALSE");
+            }
+            int kinReportIndex = scriptContent.indexOf("KinReport(", endOfFit);
+
+            String devOffCommand = "dev.off()" + System.lineSeparator();
+            scriptContent = scriptContent.substring(0, kinReportIndex) + devOffCommand + scriptContent.substring(kinReportIndex);
+
+            scriptContent = scriptContent.substring(0, fitIndex) + fitSection + scriptContent.substring(endOfFit);
         }
         return scriptContent;
     }
