@@ -40,10 +40,11 @@ class RExtruderControllerTest {
         // When
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/extractors")
                         .file(file1)
-                        .file(file2)) // Provide multiple .file() entries for each file in the array
+                        .file(file2))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string("Word document uploaded to S3 with key: dummy_key.docx"));
+                .andExpect(MockMvcResultMatchers.content().string("{\"s3 key\":\"dummy_key.docx\",\"message\":\"Word document uploaded to S3 with key: \"}"));
     }
+
     @Test
     void should_download_document_from_s3_bucket() throws Exception {
         // Given

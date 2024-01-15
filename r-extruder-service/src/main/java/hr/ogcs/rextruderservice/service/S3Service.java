@@ -33,7 +33,7 @@ public class S3Service {
     public String uploadFileToS3(byte[] wordBytes, String originalFilename) throws IOException {
         try {
             String uuid = UUID.randomUUID().toString().substring(0, 8);
-            String objectKey = originalFilename.replace(" ","_") + "_" + uuid + ".docx";
+            String objectKey = originalFilename.replace(" ","_").replace(".R","") + "_" + uuid + ".docx";
 
             try (InputStream inputStream = new ByteArrayInputStream(wordBytes)) {
                 s3Client.putObject(PutObjectRequest.builder()
