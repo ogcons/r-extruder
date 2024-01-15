@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -29,17 +31,25 @@ public class RExtruderController {
     }
 
     @PostMapping("/extractors")
-    public ResponseEntity<String> createAndUpload(@RequestParam("files") MultipartFile[] files) throws InterruptedException {
+    public ResponseEntity<Map<String, String>> createAndUpload(@RequestParam("files") MultipartFile[] files) throws InterruptedException {
         try {
             byte[] wordBytes = rScriptService.createPlotFromRScripts(files);
 
             // Use the original file name of the first uploaded file
             String s3ObjectKey = s3Service.uploadFileToS3(wordBytes, Objects.requireNonNull(files[0].getOriginalFilename()));
 
-            return ResponseEntity.ok("Word document uploaded to S3 with key: " + s3ObjectKey);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Word document uploaded to S3 with key: ");
+            response.put("s3 key", s3ObjectKey);
+
+            return ResponseEntity.ok(response);
         } catch (IOException e) {
             log.error("Error during combined operation: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to perform the combined operation");
+
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Failed to perform the combined operation");
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 

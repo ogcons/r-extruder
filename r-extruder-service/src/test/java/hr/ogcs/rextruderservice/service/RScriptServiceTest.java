@@ -301,6 +301,10 @@ class RScriptServiceTest {
         assertNotNull(result);
         assertTrue(result.length > 0);
 
+        // Verify that the generated plot is equal to the content of test_script.png
+        byte[] expectedContent = Files.readAllBytes(path);
+        assertArrayEquals(expectedContent, result);
+
         // Clean up
         Files.deleteIfExists(path);
         Files.deleteIfExists(Path.of(originalFileName));
