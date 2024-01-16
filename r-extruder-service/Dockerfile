@@ -22,8 +22,9 @@ COPY build/libs/r-extruder-service-0.0.1-SNAPSHOT.jar .
 
 # Install R packages
 RUN R -e "install.packages('mkin', dependencies=TRUE)"
+RUN R -e "install.packages('Cairo', dependencies=TRUE)"
 RUN R -e "install.packages('remotes', dependencies=TRUE)"
-RUN R -e "remotes::install_github('Miiso9/KineticEval')"
+RUN R -e "remotes::install_github('Miiso9/KineticEval2')"
 
 ARG R_EXECUTABLE
 ENV R_EXECUTABLE $R_EXECUTABLE
