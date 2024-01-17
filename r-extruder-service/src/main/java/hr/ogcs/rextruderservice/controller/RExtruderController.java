@@ -30,9 +30,9 @@ public class RExtruderController {
         this.s3Service = s3Service;
     }
 
-    @PostMapping("/extractors")
+    @PostMapping(value = "/extractors", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Object> createAndUpload(
-            @RequestParam("files") MultipartFile[] file,
+            @RequestPart("files") MultipartFile[] file,
             @RequestParam(value = "output", required = false, defaultValue = "id") String output
     ) throws InterruptedException {
         try {

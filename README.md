@@ -56,3 +56,6 @@ docker-compose up
 cd build/libs
 java -jar r-extruder-service-0.0.1-SNAPSHOT.jar
 ```
+
+To test your endpoints: 
+- Use Swagger documentation - http://localhost:8080/swagger-ui/index.html
