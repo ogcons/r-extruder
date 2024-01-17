@@ -31,18 +31,26 @@ public class RExtruderController {
     }
 
     @PostMapping("/extractors")
-    public ResponseEntity<Map<String, String>> createAndUpload(@RequestParam("files") MultipartFile[] files) throws InterruptedException {
+    public ResponseEntity<Object> createAndUpload(
+            @RequestParam("files") MultipartFile[] file,
+            @RequestParam(value = "output", required = false, defaultValue = "id") String output
+    ) throws InterruptedException {
         try {
-            byte[] wordBytes = rScriptService.createPlotFromRScripts(files);
+            byte[] wordBytes = rScriptService.createPlotFromRScripts(file);
+            String s3ObjectKey = s3Service.uploadFileToS3(wordBytes, Objects.requireNonNull(file[0].getOriginalFilename()));
 
-            // Use the original file name of the first uploaded file
-            String s3ObjectKey = s3Service.uploadFileToS3(wordBytes, Objects.requireNonNull(files[0].getOriginalFilename()));
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Word document uploaded to S3 with key: ");
-            response.put("s3 key", s3ObjectKey);
-
-            return ResponseEntity.ok(response);
+            // Return either Word document or ID of the S3 storage based on parameters
+            if ("docx".equals(output)) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+                headers.setContentDispositionFormData("attachment", s3ObjectKey);
+                return new ResponseEntity<>(wordBytes, headers, HttpStatus.OK);
+            } else {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "Word document uploaded to S3 with key: " + s3ObjectKey);
+                response.put("s3 key", s3ObjectKey);
+                return ResponseEntity.ok(response);
+            }
         } catch (IOException e) {
             log.error("Error during combined operation: {}", e.getMessage());
 
