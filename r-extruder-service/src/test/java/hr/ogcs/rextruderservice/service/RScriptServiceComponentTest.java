@@ -29,6 +29,7 @@ class RScriptServiceComponentTest {
     void should_generate_word_document_from_dummy_input() throws IOException, InterruptedException {
         // Given
         String filename= "testfile.R";
+        boolean generatePdf = false;
         MultipartFile mockMultipartFile = mock(MultipartFile.class);
         when(mockMultipartFile.getOriginalFilename()).thenReturn(filename);
         when(mockMultipartFile.isEmpty()).thenReturn(false);
@@ -37,7 +38,7 @@ class RScriptServiceComponentTest {
         MultipartFile[] mockMultipartFiles = {mockMultipartFile};
 
         // When
-        byte[] result = rScriptService.createPlotFromRScripts(mockMultipartFiles);
+        byte[] result = rScriptService.createPlotFromRScripts(mockMultipartFiles, generatePdf);
 
         // Then
         assertNotNull(result);

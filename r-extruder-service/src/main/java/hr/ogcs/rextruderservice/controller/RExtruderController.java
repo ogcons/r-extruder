@@ -32,11 +32,12 @@ public class RExtruderController {
 
     @PostMapping(value = "/extractors", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Object> createAndUpload(
-            @RequestPart("files") MultipartFile[] file,
-            @RequestParam(value = "output", required = false, defaultValue = "id") String output
+            @RequestParam("files") MultipartFile[] file,
+            @RequestParam(value = "output", required = false, defaultValue = "id") String output,
+            @RequestParam(value = "generatePdfWithPictures", required = false, defaultValue = "false") boolean generatePdfWithPictures
     ) throws InterruptedException {
         try {
-            byte[] wordBytes = rScriptService.createPlotFromRScripts(file);
+            byte[] wordBytes = rScriptService.createPlotFromRScripts(file, generatePdfWithPictures);
             String s3ObjectKey = s3Service.uploadFileToS3(wordBytes, Objects.requireNonNull(file[0].getOriginalFilename()));
 
             // Return either Word document or ID of the S3 storage based on parameters
@@ -51,6 +52,7 @@ public class RExtruderController {
                 response.put("s3 key", s3ObjectKey);
                 return ResponseEntity.ok(response);
             }
+
         } catch (IOException e) {
             log.error("Error during combined operation: {}", e.getMessage());
 

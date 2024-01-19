@@ -30,13 +30,15 @@ class RScriptServiceTest {
     @Mock
     private DocumentService documentService;
 
+    @Mock PdfConvertService pdfConvertService;
+
     @InjectMocks
     private RScriptService rScriptService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        rScriptService = new RScriptService(documentService, rProcessor);
+        rScriptService = new RScriptService(documentService, rProcessor, pdfConvertService);
     }
 
     @Test
@@ -106,6 +108,25 @@ class RScriptServiceTest {
         // Then
         assertTrue(modifiedContent.contains(String.format("png('%s')", outputFileName)));
         assertTrue(modifiedContent.contains("dev.off()"));
+
+        Files.deleteIfExists(tempScriptFile);
+    }
+
+    @Test
+    void should_modify_rscript_content_for_pdf_only() throws IOException {
+        // Given
+        String scriptContent = "Fit    <- try(KinEval(plotfit   = TRUE)) KinReport();";
+        String outputFileName = "output.p";
+
+        Path tempScriptFile = Files.createTempFile("testScript", ".R");
+        Files.write(tempScriptFile, scriptContent.getBytes());
+
+        // When
+        String modifiedContent = rScriptService.modifyScriptContent(tempScriptFile, outputFileName);
+
+        // Then
+        assertTrue(modifiedContent.contains(String.format("pdf('%s')", outputFileName)));
+        assertTrue(modifiedContent.replace(" ", "").contains("plotfit=FALSE"));
 
         Files.deleteIfExists(tempScriptFile);
     }
@@ -268,10 +289,62 @@ class RScriptServiceTest {
     }
 
     @Test
-    void should_create_plot_from_rscript() throws IOException, InterruptedException {
+    void should_execute_rscript_and_generate_pdf() throws IOException, InterruptedException {
         // Given
-        RScriptService rScriptService = new RScriptService(documentService, rProcessor);
+        Path resourceFile = Paths.get("src", "test", "resources", "testfile.R");
 
+        //When
+        Process mockedProcess = mock(Process.class);
+        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        InputStream inputStream = new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8));
+        InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
+        when(mockedProcess.getInputStream()).thenReturn(inputStream);
+        when(mockedProcess.getErrorStream()).thenReturn(errorStream);
+        when(mockedProcess.waitFor()).thenReturn(0);
+        when(pdfConvertService.convertPdfToWord(argThat((List<byte[]> list) -> true),any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        byte[] result = rScriptService.executeRScriptAndGeneratePdf(resourceFile);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.length > 0);
+
+        // Clean up
+        Files.deleteIfExists(Path.of("." + File.separator + "modified_testfile.R"));
+    }
+
+    @Test
+    void should_throw_exception_for_failed_execution_of_retrieve_pdf() throws IOException, InterruptedException {
+        // Given
+        Path resourceFile = Paths.get("src", "test", "resources", "testfile.R");
+
+        // When
+        Process mockedProcess = mock(Process.class);
+        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+
+        when(mockedProcess.waitFor()).thenThrow(new InterruptedException("Simulated interruption"));
+
+        InputStream inputStream = new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8));
+        InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
+        when(mockedProcess.getInputStream()).thenReturn(inputStream);
+        when(mockedProcess.getErrorStream()).thenReturn(errorStream);
+        when(pdfConvertService.convertPdfToWord(argThat((List<byte[]> list) -> true),any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Then
+        assertThrows(InterruptedException.class, () -> rScriptService.executeRScriptAndGeneratePdf(resourceFile));
+
+
+        // Clean up
+        Files.deleteIfExists(Path.of("." + File.separator + "modified_testfile.R"));
+    }
+
+    @Test
+    void should_create_plot_from_rscript() throws Exception {
+        // Given
+        RScriptService rScriptService = new RScriptService(documentService, rProcessor, pdfConvertService);
+
+        boolean generatePdf = false;
         String originalFileName = "test_script.R";
         MockMultipartFile multipartFile = new MockMultipartFile(
                 "file", originalFileName, "text/plain", "plot(c(1,2,3))".getBytes());
@@ -295,7 +368,7 @@ class RScriptServiceTest {
             return byteArrays.get(0);
         });
 
-        byte[] result = rScriptService.createPlotFromRScripts(new MultipartFile[]{multipartFile});
+        byte[] result = rScriptService.createPlotFromRScripts(new MultipartFile[]{multipartFile}, generatePdf);
 
         // Then
         assertNotNull(result);
@@ -315,6 +388,7 @@ class RScriptServiceTest {
     void should_throw_exception_for_failed_creating_plot() throws IOException, InterruptedException {
         // Given
         String originalFileName = "test_script.R";
+        boolean generatePdf = false;
         MockMultipartFile multipartFile = new MockMultipartFile(
                 "file", originalFileName, "text/plain", "plot(c(1,2,3))".getBytes());
         String modifiedFileName = "modified_" + originalFileName.replace(" ", "_");
@@ -333,10 +407,55 @@ class RScriptServiceTest {
 
         // Then
         IOException exception = assertThrows(IOException.class,
-                () -> rScriptService.createPlotFromRScripts(new MockMultipartFile[]{multipartFile}),
+                () -> rScriptService.createPlotFromRScripts(new MockMultipartFile[]{multipartFile}, generatePdf),
                 "Expected createPlotFromRScript to throw IOException");
 
         assertTrue(exception.getMessage().contains("Failed to execute modified R script. Exit code: 1"));
+
+        // Clean up
+        Files.deleteIfExists(path);
+        Files.deleteIfExists(Path.of(originalFileName));
+        Files.deleteIfExists(Path.of(modifiedFileName));
+    }
+
+    @Test
+    void should_create_plots_from_rscript_using_generated_pdf() throws Exception {
+        // Given
+        RScriptService rScriptService = new RScriptService(documentService, rProcessor, pdfConvertService);
+
+        boolean generatePdf = true;
+        String originalFileName = "test_script.R";
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "file", originalFileName, "text/plain", "Fit    <- try(KinEval(plotfit   = TRUE)) KinReport();".getBytes());
+        String modifiedFileName = "modified_" + originalFileName.replace(" ", "_");
+
+        String pdfFilePath = "." + File.separator + "test_script.pdf";
+        Path path = Path.of(pdfFilePath);
+        Files.writeString(path, "PDF Content", StandardOpenOption.CREATE);
+
+        // When
+        Process mockedProcess = mock(Process.class);
+        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        InputStream inputStream = new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8));
+        InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
+        when(mockedProcess.getInputStream()).thenReturn(inputStream);
+        when(mockedProcess.getErrorStream()).thenReturn(errorStream);
+        when(mockedProcess.waitFor()).thenReturn(0);
+
+        when(pdfConvertService.convertPdfToWord(anyList(),any())).thenAnswer(invocation -> {
+            List<byte[]> byteArrays = invocation.getArgument(0);
+            return byteArrays.get(0);
+        });
+
+        byte[] result = rScriptService.createPlotFromRScripts(new MultipartFile[]{multipartFile}, generatePdf);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.length > 0);
+
+        // Verify that the generated plot is equal to the content of test_script.png
+        byte[] expectedContent = Files.readAllBytes(path);
+        assertArrayEquals(expectedContent, result);
 
         // Clean up
         Files.deleteIfExists(path);

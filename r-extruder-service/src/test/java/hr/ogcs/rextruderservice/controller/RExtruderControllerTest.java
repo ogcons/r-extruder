@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 @WebMvcTest(RExtruderController.class)
 class RExtruderControllerTest {
@@ -35,7 +35,8 @@ class RExtruderControllerTest {
         MockMultipartFile file1 = new MockMultipartFile("files", "test1.docx", "application/octet-stream", "Test content 1".getBytes());
         MockMultipartFile file2 = new MockMultipartFile("files", "test2.docx", "application/octet-stream", "Test content 2".getBytes());
 
-        when(rScriptService.createPlotFromRScripts(any())).thenReturn("Dummy Word Bytes".getBytes());
+        when(rScriptService.createPlotFromRScripts(any(), eq(false)))
+                .thenReturn("Dummy Word Bytes".getBytes());
         when(s3Service.uploadFileToS3(any(byte[].class), any(String.class))).thenReturn("dummy_key.docx");
 
         // When
@@ -43,14 +44,15 @@ class RExtruderControllerTest {
                         .file(file1)
                         .file(file2))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string("{\"s3 key\":\"dummy_key.docx\",\"message\":\"Word document uploaded to S3 with key: dummy_key.docx\"}"));
+                .andExpect(MockMvcResultMatchers.content()
+                        .string("{\"s3 key\":\"dummy_key.docx\",\"message\":\"Word document uploaded to S3 with key: dummy_key.docx\"}"));
     }
 
     @Test
     void should_create_and_upload_in_s3_bucket_with_docx_output() throws Exception {
         // Given
         MockMultipartFile file = new MockMultipartFile("files", "test.docx", "application/octet-stream", "Test content".getBytes());
-        when(rScriptService.createPlotFromRScripts(any())).thenReturn("Dummy Word Bytes".getBytes());
+        when(rScriptService.createPlotFromRScripts(any(), eq(false))).thenReturn("Dummy Word Bytes".getBytes());
         when(s3Service.uploadFileToS3(any(byte[].class), any(String.class))).thenReturn("dummy_key.docx");
 
         // When
@@ -67,7 +69,7 @@ class RExtruderControllerTest {
         // Given
         MockMultipartFile file = new MockMultipartFile("files", "test.docx", "application/octet-stream", "Test content".getBytes());
 
-        when(rScriptService.createPlotFromRScripts(any())).thenThrow(new IOException("IO Exception"));
+        when(rScriptService.createPlotFromRScripts(any(),eq(false))).thenThrow(new IOException("IO Exception"));
 
         // When
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/extractors")
@@ -75,8 +77,6 @@ class RExtruderControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to perform the combined operation"));
     }
-
-
 
     @Test
     void should_download_document_from_s3_bucket() throws Exception {
@@ -109,7 +109,7 @@ class RExtruderControllerTest {
     void should_handle_internal_server_error_during_upload() throws Exception {
         // Given
         MockMultipartFile file = new MockMultipartFile("file", "test.docx", "application/octet-stream", "Test content".getBytes());
-        when(rScriptService.createPlotFromRScripts(any())).thenThrow(new IOException("Simulated error"));
+        when(rScriptService.createPlotFromRScripts(any(), eq(false))).thenThrow(new IOException("Simulated error"));
 
         // When
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/extractors")

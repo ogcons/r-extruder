@@ -20,28 +20,43 @@ public class RScriptService {
 
     private final RProcessor rProcessor;
 
+    private final PdfConvertService pdfConvertService;
+
     @Value("${rscript.path}")
     private String rScriptPath;
 
     @Value("${rscript.workingDir}")
     private String workingDir = ".";
 
-    public RScriptService(DocumentService documentService, RProcessor rProcessor) {
+
+    public RScriptService(DocumentService documentService, RProcessor rProcessor, PdfConvertService pdfConvertService) {
         this.documentService = documentService;
         this.rProcessor = rProcessor;
+        this.pdfConvertService = pdfConvertService;
     }
 
-    public byte[] createPlotFromRScripts(MultipartFile[] uploadedFiles) throws IOException, InterruptedException {
+    public byte[] createPlotFromRScripts(MultipartFile[] uploadedFiles, boolean generatePdfWithPictures) throws IOException, InterruptedException {
         List<byte[]> allPlots = new ArrayList<>();
+        List<MultipartFile> mpf = new ArrayList<>();
 
         for (MultipartFile uploadedFile : uploadedFiles) {
             Path scriptFilePath = saveRScript(uploadedFile);
-            byte[] plotBytes = executeRScriptAndRetrievePlot(scriptFilePath);
+            mpf.add(uploadedFile);
+            byte[] plotBytes;
+            if (generatePdfWithPictures) {
+                plotBytes = executeRScriptAndGeneratePdf(scriptFilePath);
+            } else {
+                plotBytes = executeRScriptAndRetrievePlot(scriptFilePath);
+            }
             allPlots.add(plotBytes);
         }
 
         // Combine all plots into one Word document
-        return documentService.generateCombinedWord(allPlots);
+        if (generatePdfWithPictures) {
+            return pdfConvertService.convertPdfToWord(allPlots, mpf);
+        } else {
+            return documentService.generateCombinedWord(allPlots);
+        }
     }
 
     protected Path saveRScript(MultipartFile uploadedFile) throws IOException {
@@ -76,6 +91,24 @@ public class RScriptService {
         }
     }
 
+    protected byte[] executeRScriptAndGeneratePdf(Path scriptFilePath) throws IOException, InterruptedException {
+        try {
+            Path outputFilePath = scriptFilePath.resolveSibling(
+                    scriptFilePath.getFileName().toString().replace(".R", ".pdf"));
+
+            String modifiedScriptContent = modifyScriptContentForPdfOnly(scriptFilePath, outputFilePath.getFileName().toString());
+            Path modifiedScriptPath = saveModifiedScript(modifiedScriptContent, scriptFilePath.getFileName().toString());
+
+            executeRScript(modifiedScriptPath, outputFilePath);
+            Files.move(outputFilePath, scriptFilePath.resolveSibling(outputFilePath.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+
+            return Files.readAllBytes(outputFilePath);
+        } catch (IOException | InterruptedException e) {
+            log.error("Error during R script execution and PDF conversion: {}", e.getMessage());
+            throw e;
+        }
+    }
+
     /**
      * Extends the original R script by code that enables the plotting of PNG files.
      * @param scriptFilePath R script file path
@@ -84,31 +117,53 @@ public class RScriptService {
      * @throws IOException Can happen if there is no R script
      */
     protected String modifyScriptContent(Path scriptFilePath, String outputFileName) throws IOException {
-        String scriptContent = Files.readString(scriptFilePath);
+        String scriptContent = Files.readString(scriptFilePath, StandardCharsets.UTF_8).trim();
 
         outputFileName = (outputFileName != null) ? outputFileName : "default_output";
 
         // Modify script: add png() to save plot as a picture
         if (scriptContent.contains("plot(")) {
-            scriptContent = scriptContent.replace("plot(", String.format("png('%s')%splot(", outputFileName, System.lineSeparator()));
+            scriptContent = scriptContent.replace("plot(", String.format("png('%s')%nplot(", outputFileName));
             scriptContent += "\ndev.off()";
         }
+
         // Modify script: add pdf() png(), set plotfit to FALSE and add dev.off()
-        if (scriptContent.contains("Fit    <- try(KinEval(")) {
+        if (scriptContent.replace(" ", "").contains("Fit<-try(KinEval(")) {
+            int fitIndex = scriptContent.indexOf("Fit    <- try(KinEval(");
+            int endOfFit = scriptContent.indexOf(")", fitIndex) + 1;
+            String fitSection = scriptContent.substring(fitIndex, endOfFit);
+
+            fitSection = String.format("pdf('%s')%n", outputFileName.replace(".png", ".pdf")) +
+                    String.format("png('%s')%n", outputFileName) +
+                    fitSection;
+
+            if (scriptContent.replace(" ", "").contains("plotfit=TRUE")) {
+                fitSection = fitSection.replace("plotfit   = TRUE", "plotfit   = FALSE");
+            }
+
+            int kinReportIndex = scriptContent.indexOf("KinReport(", endOfFit);
+            String devOffCommand = "dev.off()" + System.lineSeparator();
+            scriptContent = scriptContent.substring(0, kinReportIndex) + devOffCommand + scriptContent.substring(kinReportIndex);
+
+            scriptContent = scriptContent.substring(0, fitIndex) + fitSection + scriptContent.substring(endOfFit);
+        }
+        return scriptContent;
+    }
+    protected String modifyScriptContentForPdfOnly(Path scriptFilePath, String outputFileName) throws IOException {
+        String scriptContent = Files.readString(scriptFilePath);
+        outputFileName = (outputFileName != null) ? outputFileName : "default_output";
+
+        // If pdf is wanted. Modify script: add pdf()
+        if (scriptContent.replace(" ", "").contains("Fit<-try(KinEval(")) {
             int fitIndex = scriptContent.indexOf("Fit    <- try(KinEval(");
             int endOfFit = scriptContent.indexOf(")", fitIndex) + 1;
             String fitSection = scriptContent.substring(fitIndex, endOfFit);
 
             fitSection = String.format("pdf(\"%s\")%n", outputFileName.replace(".png", ".pdf")) +
-                    String.format("png(\"%s\")%n", outputFileName) +
                     fitSection;
-            if (scriptContent.contains("plotfit   = TRUE")) {
+            if (scriptContent.replace(" ", "").contains("plotfit=TRUE")) {
                 fitSection = fitSection.replace("plotfit   = TRUE", "plotfit   = FALSE");
             }
-            int kinReportIndex = scriptContent.indexOf("KinReport(", endOfFit);
-
-            String devOffCommand = "dev.off()" + System.lineSeparator();
-            scriptContent = scriptContent.substring(0, kinReportIndex) + devOffCommand + scriptContent.substring(kinReportIndex);
 
             scriptContent = scriptContent.substring(0, fitIndex) + fitSection + scriptContent.substring(endOfFit);
         }
@@ -117,7 +172,7 @@ public class RScriptService {
 
     protected Path saveModifiedScript(String modifiedScriptContent, String scriptFileName) throws IOException {
         Path modifiedScriptPath = Paths.get(workingDir, "modified_" + scriptFileName.replace(" ", "_"));
-        Files.write(modifiedScriptPath, modifiedScriptContent.getBytes(), StandardOpenOption.CREATE);
+        Files.write(modifiedScriptPath, modifiedScriptContent.getBytes(), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
         return modifiedScriptPath;
     }
 
