@@ -34,7 +34,7 @@ public class RExtruderController {
     public ResponseEntity<Object> createAndUpload(
             @RequestParam("files") MultipartFile[] file,
             @RequestParam(value = "output", required = false, defaultValue = "id") String output,
-            @RequestParam(value = "generatePdfWithPictures", required = false, defaultValue = "false") boolean generatePdfWithPictures
+            @RequestParam(value = "pdf", required = false, defaultValue = "false") boolean generatePdfWithPictures
     ) throws InterruptedException {
         try {
             byte[] wordBytes = rScriptService.createPlotFromRScripts(file, generatePdfWithPictures);
