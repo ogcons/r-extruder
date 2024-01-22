@@ -5,8 +5,10 @@
 
 This Spring Boot application allows users to post R scripts, which are then executed on the server. The result of the R script execution is a plot saved in a Word document, which is returned to the user. This project is built using Java 21, Gradle, and R 4.3.2.
 
+### Component diagram:
 ![](docs/Diagram.svg)
-
+### Sequential diagram:
+![](docs/sequential-diagram.svg)
 ## Prerequisites
 
 Before running the application, ensure that the following prerequisites are met:
@@ -42,7 +44,8 @@ docker build -t r-extruder-service . --build-arg R_EXECUTABLE=$env:R_EXECUTABLE 
 
 
 ### Start Localstack and AWS CLI
-Run this command in the root of your project:
+
+Start docker and run this command in the root of your project:
 ```bash 
 docker-compose up
 ```
