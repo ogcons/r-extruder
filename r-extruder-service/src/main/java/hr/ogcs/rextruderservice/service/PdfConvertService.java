@@ -1,5 +1,6 @@
 package hr.ogcs.rextruderservice.service;
 
+import hr.ogcs.rextruderservice.model.RPlotsData;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -11,13 +12,11 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class PdfConvertService {
@@ -25,11 +24,10 @@ public class PdfConvertService {
     @Value("${rscript.workingDir}")
     private String workingDir = ".";
 
-    public byte[] convertPdfToWord(List<byte[]> pdfBytes, List<MultipartFile> mpf) throws IOException {
+    public byte[] convertPdfToWord(List<RPlotsData> rMetaDataList) throws IOException {
         try (XWPFDocument document = new XWPFDocument()) {
-            int i = 0;
-            for (byte[] pdfByte : pdfBytes) {
-                processPdf(pdfByte, document, mpf.get(i++));
+            for (RPlotsData rMetaData : rMetaDataList) {
+                processPdf(rMetaData, document);
             }
 
             // Save the Word document to a ByteArrayOutputStream
@@ -39,14 +37,14 @@ public class PdfConvertService {
         }
     }
 
-    protected void processPdf(byte[] pdfBytes, XWPFDocument document, MultipartFile mpsf) throws IOException {
-        try (PDDocument pdfDocument = PDDocument.load(pdfBytes)) {
+    protected void processPdf(RPlotsData rMetaData, XWPFDocument document) throws IOException {
+        try (PDDocument pdfDocument = PDDocument.load(rMetaData.getPlotFile())) {
             PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
 
             for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
                 BufferedImage image = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
                 String imagePath;
-                imagePath = saveImage(image, page + 1, Objects.requireNonNull(mpsf.getOriginalFilename()));
+                imagePath = saveImage(image, page + 1, rMetaData.getFileName());
 
                 insertImageToWord(document, imagePath);
             }
