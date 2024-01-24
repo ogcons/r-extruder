@@ -1,17 +1,21 @@
 package hr.ogcs.rextruderservice.service;
 
+import hr.ogcs.rextruderservice.model.RPlotsData;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
-
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,13 +23,19 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class PdfConvertServiceTest {
+
+    @InjectMocks
     private PdfConvertService pdfConvertService;
+
+    @Mock
+    private RPlotsData rPlotsData;
 
     @BeforeEach
     void setUp() {
-        pdfConvertService = new PdfConvertService();
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -33,12 +43,12 @@ class PdfConvertServiceTest {
         // Given
         Path pdfPath = Paths.get("src/test/resources/testfile.pdf");
         byte[] pdfByte = Files.readAllBytes(pdfPath);
-        List<byte[]> pdfBytes = Arrays.asList(pdfByte, pdfByte);
-        MultipartFile mpf = new MockMultipartFile("test", new FileInputStream("src/test/resources/testfile.pdf"));
-        List<MultipartFile> mpfs = Arrays.asList(mpf, mpf);
+        when(rPlotsData.getPlotFile()).thenReturn(pdfByte);
+        when(rPlotsData.getFileName()).thenReturn("testfile.R");
+        List<RPlotsData> rMetaDataList = Arrays.asList(rPlotsData, rPlotsData);
 
         // When
-        byte[] result = pdfConvertService.convertPdfToWord(pdfBytes, mpfs);
+        byte[] result = pdfConvertService.convertPdfToWord(rMetaDataList);
 
         // Then
         assertNotNull(result, "The result should not be null");
@@ -51,10 +61,8 @@ class PdfConvertServiceTest {
                     "The number of pictures should match the number of pages in the PDF file");
             generated.getAllPictures().forEach(picture -> assertEquals("png", picture.suggestFileExtension(), "The picture should be a PNG"));
         }
-
         // Clean up
-        Path imagePath = Paths.get("1.png");
-        Files.deleteIfExists(imagePath);
+        Files.deleteIfExists(Path.of(rPlotsData.getFileName().replace(".R","_"+ "1.png")));
     }
 
     @Test
@@ -62,11 +70,11 @@ class PdfConvertServiceTest {
         // Given
         Path pdfPath = Paths.get("src/test/resources/testfile.pdf");
         byte[] pdfByte = Files.readAllBytes(pdfPath);
-        MultipartFile mpf = new MockMultipartFile("test", new FileInputStream("src/test/resources/testfile.pdf"));
+        RPlotsData rPlotsData = new RPlotsData(pdfByte, "testfile.R");
         XWPFDocument document = new XWPFDocument();
 
         // When
-        pdfConvertService.processPdf(pdfByte, document, mpf);
+        pdfConvertService.processPdf(rPlotsData, document,true);
 
         PDDocument pdfDocument = PDDocument.load(pdfByte);
 
@@ -75,7 +83,7 @@ class PdfConvertServiceTest {
 
         // Clean up
         for (int i = 1; i <= pdfDocument.getNumberOfPages(); i++) {
-            Path imagePath = Paths.get(i + ".png");
+            Path imagePath = Paths.get(rPlotsData.getFileName().replace(".R", "_")+ i + ".png");
             Files.deleteIfExists(imagePath);
         }
     }
@@ -102,10 +110,12 @@ class PdfConvertServiceTest {
         XWPFDocument document = new XWPFDocument();
 
         // When
-        pdfConvertService.insertImageToWord(document, "src/test/resources/testfile.png");
+        pdfConvertService.insertImageToWord(document, "src/test/resources/testfile.png", "filename",true);
 
         // Then
         assertEquals(1, document.getAllPictures().size(), "The document should contain one picture");
+        // Can't count pages, but can paragraphs. 2 from Plot data.
+        assertEquals(2, document.getParagraphs().size());
         assertEquals("png", document.getAllPictures().get(0).suggestFileExtension(), "The picture should be a PNG");
     }
 }

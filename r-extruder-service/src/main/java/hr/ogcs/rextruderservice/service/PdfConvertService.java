@@ -6,10 +6,7 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.util.Units;
-import org.apache.poi.xwpf.usermodel.Document;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +23,10 @@ public class PdfConvertService {
 
     public byte[] convertPdfToWord(List<RPlotsData> rMetaDataList) throws IOException {
         try (XWPFDocument document = new XWPFDocument()) {
-            for (RPlotsData rMetaData : rMetaDataList) {
-                processPdf(rMetaData, document);
+            int size = rMetaDataList.size();
+            for (int i = 0; i < size; i++) {
+                RPlotsData rMetaData = rMetaDataList.get(i);
+                processPdf(rMetaData, document, i == size - 1);
             }
 
             // Save the Word document to a ByteArrayOutputStream
@@ -37,16 +36,16 @@ public class PdfConvertService {
         }
     }
 
-    protected void processPdf(RPlotsData rMetaData, XWPFDocument document) throws IOException {
-        try (PDDocument pdfDocument = PDDocument.load(rMetaData.getPlotFile())) {
+    protected void processPdf(RPlotsData rMetaData, XWPFDocument document, boolean isLastImage) throws IOException {        try (PDDocument pdfDocument = PDDocument.load(rMetaData.getPlotFile())) {
             PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
 
-            for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
+        for (int page = 0; page < pdfDocument.getNumberOfPages(); ++page) {
                 BufferedImage image = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
                 String imagePath;
                 imagePath = saveImage(image, page + 1, rMetaData.getFileName());
 
-                insertImageToWord(document, imagePath);
+                insertImageToWord(document, imagePath, rMetaData.getFileName(),
+                        page == pdfDocument.getNumberOfPages() - 1 && isLastImage);
             }
         } catch (InvalidFormatException e) {
             throw new IOException(e);
@@ -59,12 +58,22 @@ public class PdfConvertService {
         return filename;
     }
 
-    protected void insertImageToWord(XWPFDocument document, String imagePath) throws IOException, InvalidFormatException {
-        XWPFParagraph paragraph = document.createParagraph();
-        XWPFRun run = paragraph.createRun();
+    protected void insertImageToWord(XWPFDocument document, String imagePath, String filename, boolean isLastImage) throws IOException, InvalidFormatException {
+        XWPFParagraph filenameParagraph = document.createParagraph();
+        filenameParagraph.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun filenameRun = filenameParagraph.createRun();
+        filenameRun.setText(filename);
+
+        XWPFParagraph imageParagraph = document.createParagraph();
+        imageParagraph.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun imageRun = imageParagraph.createRun();
 
         try (InputStream imageStream = new FileInputStream(imagePath)) {
-            run.addPicture(imageStream, Document.PICTURE_TYPE_PNG, "Generated Image", Units.toEMU(300), Units.toEMU(300));
+            imageRun.addPicture(imageStream, Document.PICTURE_TYPE_PNG, "Generated Image", Units.toEMU(300), Units.toEMU(300));
+        }
+
+        if (!isLastImage) {
+            imageRun.addBreak(BreakType.PAGE);
         }
     }
 }

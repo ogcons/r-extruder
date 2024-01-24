@@ -8,7 +8,7 @@ public class RScriptProcessingException extends RuntimeException {
     private final Exception exception;
 
     public RScriptProcessingException(Exception e) {
-        super();
+        super(e.getMessage());
         this.exception = e;
     }
 }

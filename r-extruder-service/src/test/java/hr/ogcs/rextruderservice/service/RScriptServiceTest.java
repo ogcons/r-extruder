@@ -1,5 +1,7 @@
 package hr.ogcs.rextruderservice.service;
 
+import hr.ogcs.rextruderservice.exception.RScriptProcessingException;
+import hr.ogcs.rextruderservice.model.RPlotsData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -236,8 +238,11 @@ class RScriptServiceTest {
         when(mockedProcess.getInputStream()).thenReturn(inputStream);
         when(mockedProcess.getErrorStream()).thenReturn(errorStream);
         when(mockedProcess.waitFor()).thenReturn(0);
-        when(documentService.generateCombinedWord(argThat((List<byte[]> list) -> true)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(documentService.generateCombinedWord(argThat((List<RPlotsData> list) -> true)))
+                .thenAnswer(invocation -> {
+                    List<RPlotsData> list = invocation.getArgument(0);
+                    return list.get(0).getPlotFile();
+                });
         byte[] result = rScriptService.executeRScriptAndRetrievePlot(resourceFile);
 
         // Then
@@ -263,8 +268,11 @@ class RScriptServiceTest {
         InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
         when(mockedProcess.getInputStream()).thenReturn(inputStream);
         when(mockedProcess.getErrorStream()).thenReturn(errorStream);
-        when(documentService.generateCombinedWord(argThat((List<byte[]> list) -> true)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(documentService.generateCombinedWord(argThat((List<RPlotsData> list) -> true)))
+                .thenAnswer(invocation -> {
+                    List<RPlotsData> list = invocation.getArgument(0);
+                    return list.get(0).getPlotFile();
+                });
         // Then
         assertThrows(InterruptedException.class, () -> rScriptService.executeRScriptAndRetrievePlot(resourceFile));
 
@@ -285,8 +293,7 @@ class RScriptServiceTest {
         assertTrue(exception.getMessage().contains("non_existent_file.R"));
 
         verify(rProcessor, never()).execute(any(), any(), any());
-        verify(documentService, never()).generateCombinedWord(argThat((List<byte[]> list) -> true));
-    }
+        verify(documentService, never()).generateCombinedWord(argThat((List<RPlotsData> list) -> true));    }
 
     @Test
     void should_execute_rscript_and_generate_pdf() throws IOException, InterruptedException {
@@ -301,8 +308,11 @@ class RScriptServiceTest {
         when(mockedProcess.getInputStream()).thenReturn(inputStream);
         when(mockedProcess.getErrorStream()).thenReturn(errorStream);
         when(mockedProcess.waitFor()).thenReturn(0);
-        when(pdfConvertService.convertPdfToWord(argThat((List<byte[]> list) -> true),any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(documentService.generateCombinedWord(argThat((List<RPlotsData> list) -> true)))
+                .thenAnswer(invocation -> {
+                    List<RPlotsData> list = invocation.getArgument(0);
+                    return list.get(0).getPlotFile();
+                });
         byte[] result = rScriptService.executeRScriptAndGeneratePdf(resourceFile);
 
         // Then
@@ -328,8 +338,11 @@ class RScriptServiceTest {
         InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
         when(mockedProcess.getInputStream()).thenReturn(inputStream);
         when(mockedProcess.getErrorStream()).thenReturn(errorStream);
-        when(pdfConvertService.convertPdfToWord(argThat((List<byte[]> list) -> true),any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(documentService.generateCombinedWord(argThat((List<RPlotsData> list) -> true)))
+                .thenAnswer(invocation -> {
+                    List<RPlotsData> list = invocation.getArgument(0);
+                    return list.get(0).getPlotFile();
+                });
 
         // Then
         assertThrows(InterruptedException.class, () -> rScriptService.executeRScriptAndGeneratePdf(resourceFile));
@@ -364,8 +377,8 @@ class RScriptServiceTest {
         when(mockedProcess.waitFor()).thenReturn(0);
 
         when(documentService.generateCombinedWord(anyList())).thenAnswer(invocation -> {
-            List<byte[]> byteArrays = invocation.getArgument(0);
-            return byteArrays.get(0);
+            List<RPlotsData> rPlotsDataList = invocation.getArgument(0);
+            return rPlotsDataList.get(0).getPlotFile();
         });
 
         byte[] result = rScriptService.createPlotFromRScripts(new MultipartFile[]{multipartFile}, generatePdf);
@@ -403,14 +416,20 @@ class RScriptServiceTest {
         when(mockedProcess.waitFor()).thenReturn(1);
         when(mockedProcess.getInputStream()).thenReturn(new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8)));
         when(mockedProcess.getErrorStream()).thenReturn(new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8)));
-        when(documentService.generateCombinedWord(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(documentService.generateCombinedWord(anyList())).thenAnswer(invocation -> {
+            List<RPlotsData> rPlotsDataList = invocation.getArgument(0);
+            return rPlotsDataList.get(0).getPlotFile();
+        });
 
         // Then
-        IOException exception = assertThrows(IOException.class,
-                () -> rScriptService.createPlotFromRScripts(new MockMultipartFile[]{multipartFile}, generatePdf),
-                "Expected createPlotFromRScript to throw IOException");
+        RScriptProcessingException exception = assertThrows(RScriptProcessingException.class, () -> rScriptService.createPlotFromRScripts(new MultipartFile[]{multipartFile}, generatePdf));
 
         assertTrue(exception.getMessage().contains("Failed to execute modified R script. Exit code: 1"));
+        verify(rProcessor, times(1)).execute(any(), any(), any());
+        verify(mockedProcess, times(1)).waitFor();
+        verify(mockedProcess, times(1)).getInputStream();
+        verify(mockedProcess, times(1)).getErrorStream();
+        verify(documentService, times(0)).generateCombinedWord(anyList());
 
         // Clean up
         Files.deleteIfExists(path);
@@ -442,9 +461,9 @@ class RScriptServiceTest {
         when(mockedProcess.getErrorStream()).thenReturn(errorStream);
         when(mockedProcess.waitFor()).thenReturn(0);
 
-        when(pdfConvertService.convertPdfToWord(anyList(),any())).thenAnswer(invocation -> {
-            List<byte[]> byteArrays = invocation.getArgument(0);
-            return byteArrays.get(0);
+        when(pdfConvertService.convertPdfToWord(anyList())).thenAnswer(invocation -> {
+            List<RPlotsData> rPlotsDataList = invocation.getArgument(0);
+            return rPlotsDataList.get(0).getPlotFile();
         });
 
         byte[] result = rScriptService.createPlotFromRScripts(new MultipartFile[]{multipartFile}, generatePdf);

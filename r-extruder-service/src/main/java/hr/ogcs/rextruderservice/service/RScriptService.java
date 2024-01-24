@@ -63,6 +63,7 @@ public class RScriptService {
             return documentService.generateCombinedWord(allPlots);
         }
     }
+
     protected Path saveRScript(MultipartFile uploadedFile) throws IOException {
         String originalFilename = uploadedFile.getOriginalFilename();
         if (originalFilename == null || originalFilename.isEmpty()) {
