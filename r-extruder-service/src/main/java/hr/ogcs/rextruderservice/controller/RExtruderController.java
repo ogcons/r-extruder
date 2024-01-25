@@ -35,7 +35,7 @@ public class RExtruderController {
             @RequestParam("files") MultipartFile[] file,
             @RequestParam(value = "output", required = false, defaultValue = "id") String output,
             @RequestParam(value = "pdf", required = false, defaultValue = "false") boolean generatePdfWithPictures
-    ) throws InterruptedException {
+    ) {
         try {
             byte[] wordBytes = rScriptService.createPlotFromRScripts(file, generatePdfWithPictures);
             String s3ObjectKey = s3Service.uploadFileToS3(wordBytes, Objects.requireNonNull(file[0].getOriginalFilename()));

@@ -1,5 +1,8 @@
 package hr.ogcs.rextruderservice.service;
 
+import hr.ogcs.rextruderservice.exception.RScriptProcessingException;
+
+import hr.ogcs.rextruderservice.model.RPlotsData;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -35,25 +38,27 @@ public class RScriptService {
         this.pdfConvertService = pdfConvertService;
     }
 
-    public byte[] createPlotFromRScripts(MultipartFile[] uploadedFiles, boolean generatePdfWithPictures) throws IOException, InterruptedException {
-        List<byte[]> allPlots = new ArrayList<>();
-        List<MultipartFile> mpf = new ArrayList<>();
+    public byte[] createPlotFromRScripts(MultipartFile[] uploadedFiles, boolean generatePdfWithPictures) throws IOException {
+        List<RPlotsData> allPlots = Arrays.stream(uploadedFiles).map(uploadedFile -> {
+            try {
 
-        for (MultipartFile uploadedFile : uploadedFiles) {
-            Path scriptFilePath = saveRScript(uploadedFile);
-            mpf.add(uploadedFile);
-            byte[] plotBytes;
-            if (generatePdfWithPictures) {
-                plotBytes = executeRScriptAndGeneratePdf(scriptFilePath);
-            } else {
-                plotBytes = executeRScriptAndRetrievePlot(scriptFilePath);
+                Path scriptFilePath = saveRScript(uploadedFile);
+                byte[] plotbytes;
+                if (generatePdfWithPictures) {
+                    plotbytes = executeRScriptAndGeneratePdf(scriptFilePath);
+                } else {
+                    plotbytes = executeRScriptAndRetrievePlot(scriptFilePath);
+                }
+                return new RPlotsData(plotbytes, uploadedFile.getOriginalFilename());
+            } catch (IOException | InterruptedException e) {
+                log.error("Error during creation of plot for file {}: {}", uploadedFile.getOriginalFilename(), e.getMessage());
+                throw new RScriptProcessingException(e);
             }
-            allPlots.add(plotBytes);
-        }
+        }).toList();
 
-        // Combine all plots into one Word document
+        // Convert all plots into a Word document
         if (generatePdfWithPictures) {
-            return pdfConvertService.convertPdfToWord(allPlots, mpf);
+            return pdfConvertService.convertPdfToWord(allPlots);
         } else {
             return documentService.generateCombinedWord(allPlots);
         }

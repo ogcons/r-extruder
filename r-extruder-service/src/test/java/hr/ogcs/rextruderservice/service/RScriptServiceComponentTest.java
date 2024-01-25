@@ -26,7 +26,7 @@ class RScriptServiceComponentTest {
     private RScriptService rScriptService;
 
     @Test
-    void should_generate_word_document_from_dummy_input() throws IOException, InterruptedException {
+    void should_generate_word_document_from_dummy_input() throws IOException {
         // Given
         String filename= "testfile.R";
         boolean generatePdf = false;
