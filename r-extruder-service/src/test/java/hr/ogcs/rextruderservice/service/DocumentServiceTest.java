@@ -4,18 +4,16 @@ import hr.ogcs.rextruderservice.model.RPlotsData;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyByte;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.when;
 
 class DocumentServiceTest {
 
@@ -26,7 +24,6 @@ class DocumentServiceTest {
         documentService = new DocumentService();
     }
 
-    // Existing test method
     @Test
     void should_generate_word_from_given_plot_image() throws IOException {
         // Given
@@ -55,14 +52,16 @@ class DocumentServiceTest {
 
     @Test
     void should_not_put_page_break_at_the_end_of_word() throws IOException {
+        // Given
         ClassLoader classLoader = getClass().getClassLoader();
         var plotAsByte = Objects.requireNonNull(classLoader.getResource("testfile.png")).getFile().getBytes();
         RPlotsData rPlot1 = new RPlotsData(plotAsByte, "anyString");
-
         RPlotsData rPlot2 = new RPlotsData(plotAsByte, "anyString");
 
+        // When
         byte[] result = documentService.generateCombinedWord(Arrays.asList(rPlot1, rPlot2));
 
+        // Then
         try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(result))) {
 
             // Can't count pages, but can paragraphs. 4 from Plot data and 1 from page break.

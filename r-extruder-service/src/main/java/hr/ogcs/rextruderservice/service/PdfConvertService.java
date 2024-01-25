@@ -18,6 +18,12 @@ import java.util.List;
 @Service
 public class PdfConvertService {
 
+    @Value("${word.document.image.width}")
+    private int imageWidth;
+
+    @Value("${word.document.image.height}")
+    private int imageHeight;
+
     @Value("${rscript.workingDir}")
     private String workingDir = ".";
 
@@ -69,7 +75,7 @@ public class PdfConvertService {
         XWPFRun imageRun = imageParagraph.createRun();
 
         try (InputStream imageStream = new FileInputStream(imagePath)) {
-            imageRun.addPicture(imageStream, Document.PICTURE_TYPE_PNG, "Generated Image", Units.toEMU(300), Units.toEMU(300));
+            imageRun.addPicture(imageStream, Document.PICTURE_TYPE_PNG, "Generated Image", Units.toEMU(imageWidth), Units.toEMU(imageHeight));
         }
 
         if (!isLastImage) {
