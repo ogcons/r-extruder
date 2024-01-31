@@ -1,0 +1,31 @@
+@import "./variables.scss";
+@import "@progress/kendo-theme-default/dist/all";
+@import "@basf/basf-header-footer/dist/styles.css";
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.k-text-disabled {
+  opacity: 0.7;
+}
+
+.notifications {
+  margin-top: 80px;
+}
+
+body .loading {
+  z-index: 10010;
+}
+
+.custom-label {
+  text-wrap: wrap;
+}

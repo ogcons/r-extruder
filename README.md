@@ -3,7 +3,7 @@
 
 ## Overview
 
-This Spring Boot application allows users to post R scripts, which are then executed on the server. The result of the R script execution is a plot saved in a Word document, which is returned to the user. This project is built using Java 21, Gradle, and R 4.3.2.
+This Spring Boot application allows users to post R scripts, which are then executed on the server. The result of the R script execution is a plot saved in a Word document, which is returned to the user. This project is built using Java 21, Gradle, R 4.3.2 and Node.js.
 
 ### Component diagram:
 ![](docs/Diagram.svg)
@@ -18,9 +18,12 @@ Before running the application, ensure that the following prerequisites are met:
 - [Spring Boot](https://start.spring.io/)
 - [R 4.3.2](https://cran.r-project.org/)
 - [Docker and Docker-Compose(Docker Desktop)](https://www.docker.com/products/docker-desktop/)
+- [Node.js](https://nodejs.org/en/download)
 
 ## Configuration
 Environment variables values can be found in Confluence dedicated page: [R-Extruder docs](https://confluence-ogcs.atlassian.net/wiki/spaces/BASF/pages/19595335/R-Extruder)
+
+For NPM_AUTH_TOKEN and NPM_AUTH_USERNAME check Confluence page: [Ature NPM registry local setup](https://confluence-ogcs.atlassian.net/wiki/spaces/SDKB/pages/5472874/Azure+NPM+registry+local+setup)
 
 Set Environment Variable R_EXECUTABLE to the binary of the R script.
 
@@ -50,9 +53,19 @@ Start docker and run this command in the root of your project:
 docker-compose up
 ```
 
+### Start frontend
+- Enter environment variables into your system environment
+- Use these commands in project directory:
+
+```bash 
+cd r-extruder-ui
+npm install
+npm start
+```
+
 ### Start backend
 - Enter environment variables into your system environment
-- Use these command in project directory:
+- Use these commands in project directory:
 
 ```bash 
 ./gradlew clean build
