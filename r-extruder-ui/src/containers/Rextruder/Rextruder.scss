@@ -1,6 +1,18 @@
 .upload-componenet {
-  margin-top: 250px;
+  margin-top: 100px;
   width: 100%;
   display: flex;
   justify-content: center;
+  flex-direction: column;
+  align-items: center;
+
+  h2 {
+    margin-bottom: 20px;
+    color: #daa520;
+    font-size: 24px;
+    font-weight: bold;
+  }
+}
+.download-component {
+  margin-top: 50px;
 }
