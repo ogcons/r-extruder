@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "./S3Download.scss";
+import "./WordDownload.scss";
 
-const S3Download: React.FC = () => {
+const WordDownload: React.FC = () => {
   const [fileName, setFileName] = useState("");
 
   const handleDownload = async () => {
@@ -40,4 +40,4 @@ const S3Download: React.FC = () => {
   );
 };
 
-export default S3Download;
+export default WordDownload;

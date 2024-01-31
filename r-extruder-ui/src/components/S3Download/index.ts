@@ -1,1 +1,1 @@
-export { default } from "./S3Download";
+export { default } from "./WordDownload";

@@ -2,7 +2,7 @@ import React from "react";
 import "./Rextruder.scss";
 import { Upload } from "@progress/kendo-react-upload";
 import SingleSelect from "../../components/SingleSelect";
-import S3Download from "../../components/S3Download/S3Download";
+import WordDownload from "../../components/S3Download/WordDownload";
 
 const Rextruder = () => {
   return (
@@ -27,7 +27,7 @@ const Rextruder = () => {
           <SingleSelect />
         </div>
         <div className="download-component">
-          <S3Download />
+          <WordDownload />
         </div>
       </div>
 
