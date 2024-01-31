@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+cd r-extruder-ui
+npm run format
+# Get list of staged files
+staged_files=$(git diff --name-only --cached)
+cd ..
+# Loop over staged files and format them
+for file in $staged_files; do
+  if [[ $file == *.js || $file == *.ts || $file == *.jsx || $file == *.tsx || $file == *.css || $file == *.scss || $file == *.less ]]; then
+    git add $file
+  fi
+done
+cd r-extruder-ui
+npm t --silent -- --watchAll=false
