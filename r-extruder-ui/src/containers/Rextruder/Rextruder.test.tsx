@@ -5,9 +5,9 @@ import Rextruder from "./Rextruder";
 test("should render Rextruder container", () => {
   const { getByText } = render(<Rextruder />);
 
-  const uploadComponent = getByText("Select files...");
+  const uploadComponent = getByText("Upload your R files:");
   expect(uploadComponent).toBeInTheDocument();
 
-  const singleSelectComponent = getByText("Select parameters");
+  const singleSelectComponent = getByText("Drop files here to upload");
   expect(singleSelectComponent).toBeInTheDocument();
 });

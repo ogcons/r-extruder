@@ -16,3 +16,20 @@
 .download-component {
   margin-top: 50px;
 }
+.checkbox-container {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  label {
+    margin-right: 10px;
+    font-size: 16px;
+  }
+
+  input {
+    width: 20px;
+    height: 20px;
+  }
+}
