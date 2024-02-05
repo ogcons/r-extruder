@@ -106,12 +106,12 @@ const RUpload = () => {
       if (dataItem.output === "docx") {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = files[0].getRawFile().name.replace(".R", ".docx");
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        const word = document.createElement("a");
+        word.href = url;
+        word.download = files[0].getRawFile().name.replace(".R", ".docx");
+        document.body.appendChild(word);
+        word.click();
+        word.remove();
       } else {
         const data = await response.json();
         setS3Key(data["s3 key"]);
