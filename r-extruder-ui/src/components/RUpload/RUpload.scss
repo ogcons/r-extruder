@@ -1,0 +1,73 @@
+.k-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+
+  fieldset {
+    width: 60%;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    legend {
+      padding: 0 10px;
+      font-weight: bold;
+    }
+  }
+
+  .upload-input {
+    width: 50%;
+    margin: 0 auto;
+    button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      background-color: #daa520;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #ffd700;
+      }
+    }
+  }
+
+  .submit-button {
+    display: flex;
+    justify-content: end;
+    button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      background-color: #daa520;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #ffd700;
+      }
+    }
+  }
+
+  .dropdown-list,
+  .checkbox {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    width: 50%;
+    margin: 10px auto;
+  }
+
+  .s3 {
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+    input[type="text"] {
+      width: 35%;
+    }
+  }
+}

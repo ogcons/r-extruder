@@ -18,7 +18,10 @@
   "dependencies": {
     "@basf/basf-header-footer": "^0.1.5",
     "@basf/react-components": "^0.5.1",
-    "@progress/kendo-react-upload": "^7.0.2",
+    "@progress/kendo-react-common": "^7.1.0",
+    "@progress/kendo-react-form": "^7.1.0",
+    "@progress/kendo-react-inputs": "^7.1.0",
+    "@progress/kendo-react-upload": "^7.1.0",
     "@progress/kendo-theme-default": "^7.2.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
