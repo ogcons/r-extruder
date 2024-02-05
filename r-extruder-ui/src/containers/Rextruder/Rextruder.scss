@@ -1,35 +1,13 @@
-.upload-componenet {
-  margin-top: 100px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
+.r-extruder {
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
-  h2 {
-    margin-bottom: 20px;
-    color: #daa520;
-    font-size: 24px;
-    font-weight: bold;
-  }
-}
-.download-component {
-  margin-top: 50px;
-}
-.checkbox-container {
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-
-  label {
-    margin-right: 10px;
-    font-size: 16px;
-  }
-
-  input {
-    width: 20px;
-    height: 20px;
+    .r-upload,
+    .word-download {
+      width: 100%;
+      margin-bottom: 20px;
+    }
   }
 }

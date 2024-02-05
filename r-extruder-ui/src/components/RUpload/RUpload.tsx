@@ -81,6 +81,7 @@ const RUpload = () => {
   const [s3Key, setS3Key] = useState<string | null>(null);
 
   const handleSubmit = async (dataItem: {
+    // This is temporary solution, since this will not be used if project becomes official
     // eslint-disable-next-line
     [name: string]: any;
   }) => {
