@@ -1,3 +1,28 @@
+.loader {
+  position: relative;
+}
+
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loader-overlay .k-loader {
+  z-index: 10000;
+}
+
+.blur {
+  filter: blur(5px);
+}
+
 .k-form {
   display: flex;
   flex-direction: column;
@@ -5,6 +30,10 @@
   justify-content: center;
   padding: 20px;
   position: relative;
+
+  &.blur {
+    @extend .blur;
+  }
 
   fieldset {
     width: 60%;
@@ -25,6 +54,7 @@
       border: none;
       border-radius: 4px;
       background-color: #daa520;
+      color: black;
       font-size: 16px;
       cursor: pointer;
 
@@ -36,7 +66,7 @@
 
   .submit-button {
     display: flex;
-    justify-content: end;
+    justify-content: flex-end;
     button {
       padding: 5px 10px;
       border: none;
@@ -60,13 +90,41 @@
     width: 50%;
     margin: 10px auto;
   }
-
   .s3 {
-    width: 100%;
-    margin: 0 auto;
-    text-align: center;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
     input[type="text"] {
-      width: 35%;
+      margin-bottom: 0;
+      height: 30px;
+      margin-right: 10px;
+      width: 38%;
+      border-radius: 5px;
+      border: 1px solid #000;
+      margin-left: 5px;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      padding: 5px;
+      height: 30px;
+      background-color: #daa520;
+      border: none;
+      cursor: pointer;
+      &:hover {
+        background-color: #ffd700;
+      }
+
+      svg {
+        fill: #ffffff;
+        width: 20px;
+        height: 20px;
+      }
     }
   }
 
@@ -75,5 +133,42 @@
     padding-top: 5px;
     margin-right: 5px;
     text-align: center;
+  }
+}
+.alert {
+  position: fixed;
+  top: 10px;
+  left: 80%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  width: 300px;
+  height: 50px;
+  background-color: #90ee90;
+  color: white;
+  padding: 2px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+  .success-alert {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    button {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: transparent;
+      border: none;
+      font-size: 12px;
+      color: white;
+      cursor: pointer;
+      svg {
+        height: 10px;
+        width: 10px;
+      }
+    }
   }
 }
