@@ -50,7 +50,7 @@ docker build -t r-extruder-service . --build-arg R_EXECUTABLE=$env:R_EXECUTABLE 
 
 Start docker and run this command in the root of your project:
 ```bash 
-docker compose -f docker-compose-dev.yaml up
+docker compose -f docker-compose-dev.yml up
 ```
 
 ### Start frontend
