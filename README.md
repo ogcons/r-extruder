@@ -9,6 +9,8 @@ This Spring Boot application allows users to post R scripts, which are then exec
 ![](docs/Diagram.svg)
 ### Sequential diagram:
 ![](docs/sequential-diagram.svg)
+### Activity diagram:
+![](docs/Activity-diagram.svg)
 ## Prerequisites
 
 Before running the application, ensure that the following prerequisites are met:
