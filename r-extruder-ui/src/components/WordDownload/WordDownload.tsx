@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./WordDownload.scss";
+import { Notification } from "@basf/react-components";
+import { TNotification } from "@basf/react-components/lib/types";
 
 const WordDownload: React.FC = () => {
   const [fileName, setFileName] = useState("");
+  const [errMsg, setErrMsg] = useState("");
+  const [notifications, setNotifications] = useState<TNotification[]>([]);
 
   const handleDownload = async () => {
     try {
@@ -23,7 +27,22 @@ const WordDownload: React.FC = () => {
       document.body.removeChild(link);
     } catch (error) {
       console.error("Error downloading file:", error);
+      setNotifications([
+        {
+          message: `Error downloading file. ${(error as Error).message}`,
+          type: "error",
+        },
+      ]);
     }
+  };
+
+  const handleSendData = async () => {
+    if (fileName === "") {
+      setErrMsg("Please fill out this field");
+      return;
+    }
+    setErrMsg("");
+    await handleDownload();
   };
 
   return (
@@ -35,7 +54,12 @@ const WordDownload: React.FC = () => {
         onChange={(e) => setFileName(e.target.value)}
         placeholder="Enter S3 key"
       />
-      <button onClick={handleDownload}>Download</button>
+      {errMsg && <p> {errMsg}</p>}
+      <button onClick={handleSendData}>Download</button>
+      <Notification
+        notifications={notifications}
+        setNotifications={() => null}
+      />
     </div>
   );
 };

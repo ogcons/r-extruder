@@ -21,6 +21,14 @@ interface EventDropdown {
     };
   };
 }
+
+interface FieldRenderProps {
+  value: UploadFileInfo[];
+  onChange: (value: { value: UploadFileInfo[] }) => void;
+}
+
+let nameChecker = false;
+
 const DropDownListInput = (
   fieldRenderPropsDropdown: FieldRenderPropsDropdown
 ) => {
@@ -51,16 +59,23 @@ const DropDownListInput = (
   );
 };
 
-interface FieldRenderProps {
-  value: UploadFileInfo[];
-  onChange: (value: { value: UploadFileInfo[] }) => void;
-}
-
 const UploadInput = (fieldRenderProps: FieldRenderProps) => {
   const onChangeHandler = (event: UploadOnAddEvent) => {
+    nameChecker = false;
+    event.newState.forEach((file) => {
+      if (!file.name.endsWith(".R")) {
+        nameChecker = true;
+      }
+    });
     fieldRenderProps.onChange({ value: event.newState });
   };
   const onRemoveHandler = (event: UploadOnRemoveEvent) => {
+    nameChecker = false;
+    event.newState.forEach((file) => {
+      if (!file.name.endsWith(".R")) {
+        nameChecker = true;
+      }
+    });
     fieldRenderProps.onChange({ value: event.newState });
   };
   return (
@@ -152,6 +167,7 @@ const RUpload = () => {
               {s3Key && <input type="text" value={` ${s3Key}`} readOnly />}
             </div>
             <div className="submit-button">
+              {nameChecker && <p> Only .R files are allowed.</p>}
               <button
                 type={"submit"}
                 className="k-button"
