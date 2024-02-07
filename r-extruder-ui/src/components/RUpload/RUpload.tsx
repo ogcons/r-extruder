@@ -28,7 +28,7 @@ interface FieldRenderProps {
   onChange: (value: { value: UploadFileInfo[] }) => void;
 }
 
-let nameChecker = false;
+let checkedName = false;
 
 const DropDownListInput = (
   fieldRenderPropsDropdown: FieldRenderPropsDropdown
@@ -44,7 +44,7 @@ const DropDownListInput = (
       name: "Get document",
     },
   ];
-  const handleChange = (event: EventDropdown) => {
+  const handleDropDownChange = (event: EventDropdown) => {
     const outputValue = event.target.value.id === "getDocument" ? "docx" : "id";
     onChange({ value: outputValue });
   };
@@ -54,7 +54,7 @@ const DropDownListInput = (
       textField="name"
       dataItemKey="id"
       value={data.find((item) => item.id === value)}
-      onChange={handleChange}
+      onChange={handleDropDownChange}
       {...others}
     />
   );
@@ -62,10 +62,10 @@ const DropDownListInput = (
 
 const UploadInput = (fieldRenderProps: FieldRenderProps) => {
   const handleFileChange = (event: UploadOnAddEvent | UploadOnRemoveEvent) => {
-    nameChecker = false;
+    checkedName = false;
     event.newState.forEach((file) => {
       if (!file.name.endsWith(".R")) {
-        nameChecker = true;
+        checkedName = true;
       }
     });
     fieldRenderProps.onChange({ value: event.newState });
@@ -257,7 +257,7 @@ const RUpload = () => {
                 )}
               </div>
               <div className="submit-button">
-                {nameChecker && <p> Only .R files are allowed.</p>}
+                {checkedName && <p> Only .R files are allowed.</p>}
                 <button
                   type={"submit"}
                   className="k-button"

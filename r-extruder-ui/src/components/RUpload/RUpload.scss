@@ -12,11 +12,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 999;
 }
 
 .loader-overlay .k-loader {
-  z-index: 10000;
+  z-index: 1000;
 }
 
 .blur {
