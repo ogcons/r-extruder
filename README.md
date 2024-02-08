@@ -25,7 +25,7 @@ Before running the application, ensure that the following prerequisites are met:
 ## Configuration
 Environment variables values can be found in Confluence dedicated page: [R-Extruder docs](https://confluence-ogcs.atlassian.net/wiki/spaces/BASF/pages/19595335/R-Extruder)
 
-For NPM_AUTH_TOKEN and NPM_AUTH_USERNAME check Confluence page: [Ature NPM registry local setup](https://confluence-ogcs.atlassian.net/wiki/spaces/SDKB/pages/5472874/Azure+NPM+registry+local+setup)
+For NPM_AUTH_TOKEN and NPM_AUTH_USERNAME check Confluence page: [Azure NPM registry local setup](https://confluence-ogcs.atlassian.net/wiki/spaces/SDKB/pages/5472874/Azure+NPM+registry+local+setup)
 
 Set Environment Variable R_EXECUTABLE to the binary of the R script.
 

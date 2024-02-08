@@ -81,7 +81,8 @@ public class RExtruderController {
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(resource);
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            log.error("Error while getting key: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
@@ -91,7 +92,8 @@ public class RExtruderController {
             List<String> documentList = s3Service.listFilesOfBucket();
             return new ResponseEntity<>(documentList, HttpStatus.OK);
         } catch (IOException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Error while getting key: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 }
