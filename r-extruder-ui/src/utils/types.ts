@@ -1,3 +1,5 @@
+import { UploadFileInfo } from "@progress/kendo-react-upload";
+
 export type TBasfHeader = {
   title?: string;
   logo?: string;
@@ -14,4 +16,35 @@ export type TBasfFooter = {
   styles?: string;
   environment?: string;
   domainName?: string;
+};
+
+export interface FieldRenderPropsDropdown {
+  value: string;
+  onChange: (value: { value: string }) => void;
+}
+export interface EventDropdown {
+  target: {
+    value: {
+      id: string;
+    };
+  };
+}
+export interface FieldRenderProps {
+  value: UploadFileInfo[];
+  onChange: (value: { value: UploadFileInfo[] }) => void;
+}
+export interface UploadInputProps extends FieldRenderProps {
+  handleInsertFile: (value: boolean) => void;
+}
+export interface SuccessNotificationProps {
+  successConversion: boolean;
+  onClose: () => void;
+}
+
+export type S3KeyDisplayProps = {
+  s3Key: string | null;
+  copyToClipboard: () => void;
+};
+export type FileWithRaw = {
+  getRawFile: () => File;
 };
