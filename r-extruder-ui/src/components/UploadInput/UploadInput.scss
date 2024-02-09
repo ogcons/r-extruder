@@ -1,0 +1,18 @@
+.upload-input {
+  width: 50%;
+  margin: 0 auto;
+
+  button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #daa520;
+    color: black;
+    font-size: 16px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #ffd700;
+    }
+  }
+}
