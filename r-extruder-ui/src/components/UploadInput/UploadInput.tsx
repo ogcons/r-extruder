@@ -16,6 +16,8 @@ const UploadInput: React.FC<UploadInputProps> = ({
     event.newState.forEach((file) => {
       if (!file.name.endsWith(".R")) {
         handleInsertFile(true);
+      } else {
+        handleInsertFile(false);
       }
     });
     onChange({ value: event.newState });

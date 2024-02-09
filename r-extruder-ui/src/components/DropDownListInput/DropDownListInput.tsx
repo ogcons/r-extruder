@@ -3,20 +3,21 @@ import React from "react";
 import { EventDropdown, FieldRenderPropsDropdown } from "../../utils/types";
 import "./DropDownListInput.scss";
 
+const data = [
+  {
+    id: "getId",
+    name: "Get ID",
+  },
+  {
+    id: "getDocument",
+    name: "Get document",
+  },
+];
 const DropDownListInput = (
   fieldRenderPropsDropdown: FieldRenderPropsDropdown
 ) => {
   const { value, onChange, ...others } = fieldRenderPropsDropdown;
-  const data = [
-    {
-      id: "getId",
-      name: "Get ID",
-    },
-    {
-      id: "getDocument",
-      name: "Get document",
-    },
-  ];
+
   const handleDropDownChange = (event: EventDropdown) => {
     const outputValue = event.target.value.id === "getDocument" ? "docx" : "id";
     onChange({ value: outputValue });
@@ -24,8 +25,8 @@ const DropDownListInput = (
   return (
     <DropDownList
       data={data}
-      textField="name"
-      dataItemKey="id"
+      textField={"name"}
+      dataItemKey={"id"}
       value={data.find((item) => item.id === value)}
       onChange={handleDropDownChange}
       {...others}

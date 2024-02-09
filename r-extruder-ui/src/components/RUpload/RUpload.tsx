@@ -2,7 +2,7 @@ import { Loader } from "@progress/kendo-react-indicators";
 import React, { useState } from "react";
 import { Field, Form } from "@progress/kendo-react-form";
 import { Checkbox } from "@progress/kendo-react-inputs";
-import DropDownListInput from "../SingleSelect";
+import DropDownListInput from "../DropDownListInput";
 import "./RUpload.scss";
 import UploadInput from "../UploadInput/UploadInput";
 import S3KeyDisplay from "../S3Display/S3Display";
@@ -12,11 +12,10 @@ import SuccessNotification from "../SuccessNotification";
 const RUpload = () => {
   const [s3Key, setS3Key] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [checkedName, setCheckedName] = useState<boolean>(false);
   const [successConversion, setSuccessConversion] = useState<boolean>(false);
-
-  const handleInsertFile = (e: boolean) => {
-    setCheckedName(e);
+  const [checkedName, setCheckedName] = useState<boolean>(false);
+  const handleInsertFile = (isChecked: boolean) => {
+    setCheckedName(isChecked);
   };
   const handleFileDownload = async (
     response: Response,
@@ -79,8 +78,8 @@ const RUpload = () => {
         });
     }
   };
-  const handleCloseNotification = () => {
-    setSuccessConversion(false);
+  const handleCloseNotification = (isOpenedNotification: boolean) => {
+    setSuccessConversion(isOpenedNotification);
   };
   return (
     <div className="loader">
@@ -104,7 +103,7 @@ const RUpload = () => {
                   name={"files"}
                   component={UploadInput}
                   setCheckedName={setCheckedName}
-                  handleFileChange={handleInsertFile}
+                  handleInsertFile={handleInsertFile}
                 />
               </div>
               <div className="dropdown-list">

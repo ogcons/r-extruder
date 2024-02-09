@@ -1,4 +1,4 @@
-import { UploadFileInfo } from "@progress/kendo-react-upload";
+import { UploadFileInfo, UploadProps } from "@progress/kendo-react-upload";
 
 export type TBasfHeader = {
   title?: string;
@@ -29,7 +29,7 @@ export interface EventDropdown {
     };
   };
 }
-export interface FieldRenderProps {
+export interface FieldRenderProps extends UploadProps {
   value: UploadFileInfo[];
   onChange: (value: { value: UploadFileInfo[] }) => void;
 }
@@ -38,7 +38,7 @@ export interface UploadInputProps extends FieldRenderProps {
 }
 export interface SuccessNotificationProps {
   successConversion: boolean;
-  onClose: () => void;
+  onClose: (e: boolean) => void;
 }
 
 export type S3KeyDisplayProps = {

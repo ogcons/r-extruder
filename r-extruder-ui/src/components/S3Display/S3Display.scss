@@ -4,7 +4,12 @@
   align-items: center;
   justify-content: center;
 
+  p {
+    color: #1e90ff;
+  }
+
   input[type="text"] {
+    padding-left: 5px;
     margin-bottom: 0;
     height: 30px;
     margin-right: 10px;

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useEffect, useState } from "react";
 import {
   Notification,
   NotificationGroup,
@@ -11,8 +12,16 @@ const SuccessNotification: React.FC<SuccessNotificationProps> = ({
   successConversion,
   onClose,
 }) => {
+  const [notificationState, setNotificationState] = useState(successConversion);
+
+  useEffect(() => {
+    setNotificationState(successConversion);
+  }, [successConversion]);
   const handleNotificationClose = () => {
-    onClose();
+    if (onClose) {
+      onClose(false);
+    }
+    setNotificationState(false);
   };
 
   return (
@@ -25,7 +34,7 @@ const SuccessNotification: React.FC<SuccessNotificationProps> = ({
       }}
     >
       <Fade>
-        {successConversion && (
+        {notificationState && (
           <Notification
             type={{ style: "success", icon: true }}
             closable={true}
