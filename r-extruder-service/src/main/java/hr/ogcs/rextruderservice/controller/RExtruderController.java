@@ -38,6 +38,16 @@ public class RExtruderController {
             @RequestParam(value = "pdf", required = false, defaultValue = "false") boolean generatePdfWithPictures
     ) {
         try {
+
+            for(MultipartFile fileName : file){
+                if(!fileName.getOriginalFilename().endsWith(".R")){
+                    log.error("File {} has an unsupported extension. Only files with .R extension are allowed.", fileName.getOriginalFilename());
+                    Map<String, String> errorResponse = new HashMap<>();
+                    errorResponse.put("message", "File " + fileName.getOriginalFilename() + " has an unsupported extension. Only files with .R extension are allowed.");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+                }
+            }
+
             byte[] wordBytes = rScriptService.createPlotFromRScripts(file, generatePdfWithPictures);
             String s3ObjectKey = s3Service.uploadFileToS3(wordBytes, Objects.requireNonNull(file[0].getOriginalFilename()));
 
