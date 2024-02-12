@@ -46,6 +46,7 @@ public class RExtruderController {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
                 headers.setContentDispositionFormData("attachment", s3ObjectKey);
+                headers.add("Access-Control-Expose-Headers", "Content-Disposition");
                 return new ResponseEntity<>(wordBytes, headers, HttpStatus.OK);
             } else {
                 Map<String, String> response = new HashMap<>();
