@@ -32,8 +32,8 @@ class RExtruderControllerTest {
     @Test
     void should_create_and_upload_in_s3_bucket() throws Exception {
         // Given
-        MockMultipartFile file1 = new MockMultipartFile("files", "test1.docx", "application/octet-stream", "Test content 1".getBytes());
-        MockMultipartFile file2 = new MockMultipartFile("files", "test2.docx", "application/octet-stream", "Test content 2".getBytes());
+        MockMultipartFile file1 = new MockMultipartFile("files", "test1.R", "application/octet-stream", "Test content 1".getBytes());
+        MockMultipartFile file2 = new MockMultipartFile("files", "test2.R", "application/octet-stream", "Test content 2".getBytes());
 
         when(rScriptService.createPlotFromRScripts(any(), eq(false)))
                 .thenReturn("Dummy Word Bytes".getBytes());
@@ -51,7 +51,7 @@ class RExtruderControllerTest {
     @Test
     void should_create_and_upload_in_s3_bucket_with_docx_output() throws Exception {
         // Given
-        MockMultipartFile file = new MockMultipartFile("files", "test.docx", "application/octet-stream", "Test content".getBytes());
+        MockMultipartFile file = new MockMultipartFile("files", "test.R", "application/octet-stream", "Test content".getBytes());
         when(rScriptService.createPlotFromRScripts(any(), eq(false))).thenReturn("Dummy Word Bytes".getBytes());
         when(s3Service.uploadFileToS3(any(byte[].class), any(String.class))).thenReturn("dummy_key.docx");
 
@@ -74,9 +74,24 @@ class RExtruderControllerTest {
         // When
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/extractors")
                         .file(file))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("File " + file.getOriginalFilename() + " has an unsupported extension. Only files with .R extension are allowed."));
+    }
+
+    @Test
+    void should_handle_io_exception_during_create_and_upload() throws Exception {
+        // Given
+        MockMultipartFile file = new MockMultipartFile("files", "test.R", "application/octet-stream", "Test content".getBytes());
+
+        when(rScriptService.createPlotFromRScripts(any(), eq(false))).thenThrow(new IOException("IO Exception"));
+
+        // When
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/extractors")
+                        .file(file))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to perform the combined operation"));
     }
+
 
     @Test
     void should_download_document_from_s3_bucket() throws Exception {
@@ -125,7 +140,7 @@ class RExtruderControllerTest {
 
         // When
         mockMvc.perform(MockMvcRequestBuilders.get("/api/extractors/s3/{fileName}", fileName))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError());
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
     @Test
@@ -135,6 +150,6 @@ class RExtruderControllerTest {
 
         // When
         mockMvc.perform(MockMvcRequestBuilders.get("/api/extractors/s3/"))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError());
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 }
