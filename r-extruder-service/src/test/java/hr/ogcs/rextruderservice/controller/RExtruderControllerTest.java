@@ -92,7 +92,6 @@ class RExtruderControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Failed to perform the combined operation"));
     }
 
-
     @Test
     void should_download_document_from_s3_bucket() throws Exception {
         // Given
