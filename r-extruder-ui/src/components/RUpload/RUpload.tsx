@@ -17,15 +17,24 @@ const RUpload = () => {
   const handleInsertFile = (isChecked: boolean) => {
     setCheckedName(isChecked);
   };
-  const handleFileDownload = async (
-    response: Response,
-    files: FileWithRaw[]
-  ) => {
+  const handleFileDownload = async (response: Response) => {
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const word = document.createElement("a");
     word.href = url;
-    word.download = files[0].getRawFile().name.replace(".R", ".docx");
+
+    // Extract filename from the Content-Disposition header
+    const contentDisposition = response.headers.get("Content-Disposition");
+    let filename = "";
+    if (contentDisposition) {
+      const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^$]*)/;
+      const matches = filenameRegex.exec(contentDisposition);
+      if (matches?.[1]) {
+        filename = matches[1].replace(/['"]/g, "");
+      }
+    }
+
+    word.download = filename;
     document.body.appendChild(word);
     word.click();
     word.remove();
@@ -55,7 +64,7 @@ const RUpload = () => {
         body: formData,
       });
       if (dataItem.output === "docx") {
-        await handleFileDownload(response, files);
+        await handleFileDownload(response);
         setSuccessConversion(true);
       } else {
         const data = await response.json();
