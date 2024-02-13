@@ -47,15 +47,18 @@ const WordDownload: React.FC = () => {
 
   return (
     <div className="s3-download">
-      <h2>Download your Word document</h2>
+      <h2 id={"titleGettingS3Key"}>Download your Word document</h2>
       <input
         type="text"
+        id={"inputS3Key"}
         value={fileName}
         onChange={(e) => setFileName(e.target.value)}
         placeholder="Enter S3 key"
       />
       {errMsg && <p> {errMsg}</p>}
-      <button onClick={handleSendData}>Download</button>
+      <button onClick={handleSendData} id={"downloadS3Key"}>
+        Download
+      </button>
       <Notification
         notifications={notifications}
         setNotifications={() => null}

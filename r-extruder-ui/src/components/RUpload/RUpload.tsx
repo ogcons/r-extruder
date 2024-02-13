@@ -84,7 +84,7 @@ const RUpload = () => {
   return (
     <div className="loader">
       {loading && (
-        <div className="loader-overlay">
+        <div id={"loader"} className="loader-overlay">
           <Loader type="converging-spinner" />
         </div>
       )}
@@ -97,8 +97,8 @@ const RUpload = () => {
         render={(formRenderProps) => (
           <form onSubmit={formRenderProps.onSubmit} className={"k-form"}>
             <fieldset>
-              <legend>Upload your R files:</legend>
-              <div className="upload-input">
+              <legend id={"titleUploadFile"}>Upload your R files:</legend>
+              <div id={"fileUploader"} className="upload-input">
                 <Field
                   name={"files"}
                   component={UploadInput}
@@ -106,14 +106,14 @@ const RUpload = () => {
                   handleInsertFile={handleInsertFile}
                 />
               </div>
-              <div className="dropdown-list">
+              <div id={"dropdownParameter"} className="dropdown-list">
                 <Field
                   name={"output"}
                   component={DropDownListInput}
                   label={"Select your returning parameter"}
                 />
               </div>
-              <div className="checkbox">
+              <div id={"checkboxForPlotMovement"} className="checkbox">
                 <Field
                   name={"pdf"}
                   component={Checkbox}
@@ -126,6 +126,7 @@ const RUpload = () => {
               <div className="submit-button">
                 {checkedName && <p> Only .R files are allowed.</p>}
                 <button
+                  id={"submitFile"}
                   type={"submit"}
                   className="k-button"
                   disabled={!formRenderProps.allowSubmit || checkedName}
