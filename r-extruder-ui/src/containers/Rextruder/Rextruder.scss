@@ -1,13 +1,11 @@
-.r-extruder {
-  .content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.content {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
 
-    .r-upload,
-    .word-download {
-      width: 100%;
-      margin-bottom: 20px;
-    }
-  }
+.r-upload,
+.word-download {
+  margin: 0 10px;
+  padding-bottom: 20px;
 }

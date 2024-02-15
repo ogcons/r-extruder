@@ -105,45 +105,41 @@ const RUpload = () => {
         onSubmit={handleSubmit}
         render={(formRenderProps) => (
           <form onSubmit={formRenderProps.onSubmit} className={"k-form"}>
-            <fieldset>
-              <legend id={"titleUploadFile"}>Upload your R files:</legend>
-              <div id={"fileUploader"} className="upload-input">
-                <Field
-                  name={"files"}
-                  component={UploadInput}
-                  setCheckedName={setCheckedName}
-                  handleInsertFile={handleInsertFile}
-                />
-              </div>
-              <div id={"dropdownParameter"} className="dropdown-list">
-                <Field
-                  name={"output"}
-                  component={DropDownListInput}
-                  label={"Select your returning parameter"}
-                />
-              </div>
-              <div id={"checkboxForPlotMovement"} className="checkbox">
-                <Field
-                  name={"pdf"}
-                  component={Checkbox}
-                  label={
-                    "Do you want whole plot movement instead of one picture?"
-                  }
-                />
-              </div>
-              <S3KeyDisplay s3Key={s3Key} copyToClipboard={copyToClipboard} />
-              <div className="submit-button">
-                {checkedName && <p> Only .R files are allowed.</p>}
-                <button
-                  id={"submitFile"}
-                  type={"submit"}
-                  className="k-button"
-                  disabled={!formRenderProps.allowSubmit || checkedName}
-                >
-                  Submit
-                </button>
-              </div>
-            </fieldset>
+            <h2 id={"titleUploadFile"}>UPLOAD YOUR R FILES</h2>
+            <div id={"fileUploader"} className="upload-input">
+              <Field
+                name={"files"}
+                component={UploadInput}
+                setCheckedName={setCheckedName}
+                handleInsertFile={handleInsertFile}
+              />
+            </div>
+            <div id={"dropdownParameter"} className="dropdown-list">
+              <Field
+                name={"output"}
+                component={DropDownListInput}
+                label={"Select your returning parameter"}
+              />
+            </div>
+            <div id={"checkboxForPlotMovement"} className="checkbox">
+              <Field
+                name={"pdf"}
+                component={Checkbox}
+                label={"Whole plot movement?"}
+              />
+            </div>
+            <S3KeyDisplay s3Key={s3Key} copyToClipboard={copyToClipboard} />
+            <div className="submit-button">
+              {checkedName && <p> Only .R files are allowed.</p>}
+              <button
+                id={"submitFile"}
+                type={"submit"}
+                className="k-button"
+                disabled={!formRenderProps.allowSubmit || checkedName}
+              >
+                Submit
+              </button>
+            </div>
           </form>
         )}
       />

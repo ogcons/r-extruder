@@ -47,7 +47,7 @@ const WordDownload: React.FC = () => {
 
   return (
     <div className="s3-download">
-      <h2 id={"titleGettingS3Key"}>Download your Word document</h2>
+      <h2 id={"titleGettingS3Key"}>DOWNLOAD YOUR WORD DOCUMENT</h2>
       <input
         type="text"
         id={"inputS3Key"}

@@ -14,7 +14,7 @@ describe("S3Download", () => {
 
   it("renders correctly", () => {
     const { getByText, getByPlaceholderText } = render(<WordDownload />);
-    expect(getByText("Download your Word document")).toBeInTheDocument();
+    expect(getByText("DOWNLOAD YOUR WORD DOCUMENT")).toBeInTheDocument();
     expect(getByPlaceholderText("Enter S3 key")).toBeInTheDocument();
     expect(getByText("Download")).toBeInTheDocument();
   });
