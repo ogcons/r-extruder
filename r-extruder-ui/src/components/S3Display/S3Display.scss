@@ -26,11 +26,11 @@
     border-radius: 5px;
     padding: 5px;
     height: 30px;
-    background-color: #daa520;
+    background-color: #3498db;
     border: none;
     cursor: pointer;
     &:hover {
-      background-color: #ffd700;
+      background-color: darken(#3498db, 15%);
     }
 
     svg {

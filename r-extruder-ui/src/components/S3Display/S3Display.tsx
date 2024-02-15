@@ -8,9 +8,9 @@ const S3KeyDisplay: React.FC<S3KeyDisplayProps> = ({
 }) => {
   return (
     <div id={"S3KeyDisplay"} className="s3">
-      <p>Your S3 key for download: </p>
       {s3Key && (
         <>
+          <p>Your S3 key for download: </p>
           <input type="text" value={s3Key} readOnly />
           <button type="button" onClick={copyToClipboard}>
             <svg

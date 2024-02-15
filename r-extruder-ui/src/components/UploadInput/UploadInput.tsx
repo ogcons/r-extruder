@@ -3,9 +3,12 @@ import {
   Upload,
   UploadOnAddEvent,
   UploadOnRemoveEvent,
+  ExternalDropZone,
 } from "@progress/kendo-react-upload";
 import { UploadInputProps } from "../../utils/types";
 import "./UploadInput.scss";
+
+const uploadRef = React.createRef<Upload>();
 
 const UploadInput: React.FC<UploadInputProps> = ({
   value,
@@ -24,13 +27,22 @@ const UploadInput: React.FC<UploadInputProps> = ({
   };
 
   return (
-    <Upload
-      autoUpload={false}
-      showActionButtons={false}
-      files={value}
-      onAdd={handleFileChange}
-      onRemove={handleFileChange}
-    />
+    <>
+      <ExternalDropZone
+        uploadRef={uploadRef}
+        style={{ borderBlockColor: "#3498db", borderColor: "#3498db" }}
+      />
+      <div id={"upload"} className="upload">
+        <Upload
+          ref={uploadRef}
+          autoUpload={false}
+          showActionButtons={false}
+          files={value}
+          onAdd={handleFileChange}
+          onRemove={handleFileChange}
+        />
+      </div>
+    </>
   );
 };
 
