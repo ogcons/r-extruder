@@ -135,7 +135,11 @@ const RUpload = () => {
                 id={"submitFile"}
                 type={"submit"}
                 className="k-button"
-                disabled={!formRenderProps.allowSubmit || checkedName}
+                disabled={
+                  !formRenderProps.allowSubmit ||
+                  !formRenderProps.valueGetter("files").length ||
+                  checkedName
+                }
               >
                 Submit
               </button>
