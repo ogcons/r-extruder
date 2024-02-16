@@ -45,20 +45,22 @@ class RProcessMockTest {
     void shoudl_create_dummy_pdf_with_images_from_dummy_rfile() throws DocumentException, IOException, InterruptedException {
         // Given
         var command = "";
-        var outputfilename = "r-script.pdf";
+        var outputFileName = "output.pdf";
+        boolean generatePdfWithPictures = true;
         var destination = ".";
 
         // When
-        var process = rProcessMock.execute(command,outputfilename, Path.of(destination), false);
+        var process = rProcessMock.execute(command, outputFileName, Path.of(destination), generatePdfWithPictures);
 
         // Then
-        assertNotNull(process);
+        File pdfFile = new File(destination, outputFileName);
+        assertTrue(pdfFile.exists(), "PDF file should be created");
         assertEquals(0, process.waitFor());
-        var expectedPDfFileName = "r-script.pdf";
-        var targetPdfFile = new File("." + File.separator + expectedPDfFileName);
-
-        assertTrue(targetPdfFile.exists(), "Pdf file should exist");
-
-        Files.deleteIfExists(targetPdfFile.toPath());
+        for (int i = 0; i < 3; i++) {
+            File imageFile = new File(destination, outputFileName.replace(".pdf", "") + "_" + i + ".png");
+            assertTrue(imageFile.exists(), "Image file should be created");
+            Files.deleteIfExists(imageFile.toPath());
+        }
+        Files.deleteIfExists(Path.of(outputFileName));
     }
 }
