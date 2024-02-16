@@ -1,5 +1,6 @@
 package hr.ogcs.rextruderservice.service;
 
+import com.itextpdf.text.DocumentException;
 import hr.ogcs.rextruderservice.exception.RScriptProcessingException;
 import hr.ogcs.rextruderservice.model.RPlotsData;
 import org.junit.jupiter.api.BeforeEach;
@@ -152,13 +153,13 @@ class RScriptServiceTest {
     }
 
     @Test
-    void should_execute_rscript_with_valid_paths() throws IOException, InterruptedException {
+    void should_execute_rscript_with_valid_paths() throws IOException, InterruptedException, DocumentException {
         // Given
         Path modifiedScriptPath = Files.createTempFile("modified", ".R");
         Path outputFilePath = Files.createTempFile("output", ".png");
 
         Process mockedProcess = mock(Process.class);
-        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        when(rProcessor.execute(any(), any(), any(),eq(false))).thenReturn(mockedProcess);
 
         // Process process = rProcessor.execute(command, outputFilePath.getFileName().toString(), outputFilePath.getParent());
         InputStream inputStream = new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8));
@@ -170,9 +171,9 @@ class RScriptServiceTest {
         when(mockedProcess.waitFor()).thenReturn(0);
 
         // Then
-        assertDoesNotThrow(() -> rScriptService.executeRScript(modifiedScriptPath, outputFilePath));
+        assertDoesNotThrow(() -> rScriptService.executeRScript(modifiedScriptPath, outputFilePath, false));
 
-        verify(rProcessor, times(1)).execute(any(), any(), any());
+        verify(rProcessor, times(1)).execute(any(), any(), any(), eq(false));
         verify(mockedProcess, times(1)).getInputStream();
         verify(mockedProcess, times(1)).getErrorStream();
         verify(mockedProcess, times(1)).waitFor();
@@ -183,13 +184,13 @@ class RScriptServiceTest {
     }
 
     @Test
-    void should_throw_exception_for_process_fail() throws IOException, InterruptedException {
+    void should_throw_exception_for_process_fail() throws IOException, InterruptedException, DocumentException {
         // Given
         Path modifiedScriptPath = Files.createTempFile("modified", ".R");
         Path outputFilePath = Files.createTempFile("output", ".png");
 
         Process mockedProcess = mock(Process.class);
-        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        when(rProcessor.execute(any(), any(), any(),eq(false))).thenReturn(mockedProcess);
 
         InputStream inputStream = new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8));
         InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
@@ -200,9 +201,9 @@ class RScriptServiceTest {
         when(mockedProcess.waitFor()).thenReturn(1);
 
         // Then
-        assertThrows(IOException.class, () -> rScriptService.executeRScript(modifiedScriptPath, outputFilePath));
+        assertThrows(IOException.class, () -> rScriptService.executeRScript(modifiedScriptPath, outputFilePath, false));
 
-        verify(rProcessor, times(1)).execute(any(), any(), any());
+        verify(rProcessor, times(1)).execute(any(), any(), any(), eq(false));
         verify(mockedProcess, times(1)).getInputStream();
         verify(mockedProcess, times(1)).getErrorStream();
         verify(mockedProcess, times(1)).waitFor();
@@ -213,26 +214,26 @@ class RScriptServiceTest {
     }
 
     @Test
-    void should_throw_exception_for_invalid_path_in_execute_rscript() throws IOException {
+    void should_throw_exception_for_invalid_path_in_execute_rscript() throws IOException, DocumentException {
         // Given
         Path outputFilePath = Paths.get(".");
 
         // When and Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> rScriptService.executeRScript(null, outputFilePath));
+                () -> rScriptService.executeRScript(null, outputFilePath, false));
 
         assertEquals("Invalid modifiedScriptPath", exception.getMessage());
-        verify(rProcessor, never()).execute(any(), any(), any());
+        verify(rProcessor, never()).execute(any(), any(), any(), eq(false));
     }
 
     @Test
-    void should_execute_rscript_and_retrieve_plot() throws IOException, InterruptedException {
+    void should_execute_rscript_and_retrieve_plot() throws IOException, InterruptedException, DocumentException {
         // Given
         Path resourceFile = Paths.get("src", "test", "resources", "testfile.R");
 
         //When
         Process mockedProcess = mock(Process.class);
-        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        when(rProcessor.execute(any(), any(), any(), eq(false))).thenReturn(mockedProcess);
         InputStream inputStream = new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8));
         InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
         when(mockedProcess.getInputStream()).thenReturn(inputStream);
@@ -254,13 +255,13 @@ class RScriptServiceTest {
     }
 
     @Test
-    void should_throw_exception_for_failed_execution_of_retrieve_plot() throws IOException, InterruptedException {
+    void should_throw_exception_for_failed_execution_of_retrieve_plot() throws IOException, InterruptedException, DocumentException {
         // Given
         Path resourceFile = Paths.get("src", "test", "resources", "testfile.R");
 
         // When
         Process mockedProcess = mock(Process.class);
-        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        when(rProcessor.execute(any(), any(), any(), eq(false))).thenReturn(mockedProcess);
 
         when(mockedProcess.waitFor()).thenThrow(new InterruptedException("Simulated interruption"));
 
@@ -281,7 +282,7 @@ class RScriptServiceTest {
     }
 
     @Test
-    void should_throw_exception_for_invalid_file_in_execute_and_retrieve_plot() throws IOException {
+    void should_throw_exception_for_invalid_file_in_execute_and_retrieve_plot() throws IOException, DocumentException {
         // Given
         Path invalidFilePath = Paths.get("non_existent_file.R");
 
@@ -292,17 +293,17 @@ class RScriptServiceTest {
         assertEquals("java.nio.file.NoSuchFileException", exception.getClass().getName());
         assertTrue(exception.getMessage().contains("non_existent_file.R"));
 
-        verify(rProcessor, never()).execute(any(), any(), any());
+        verify(rProcessor, never()).execute(any(), any(), any(), anyBoolean());
         verify(documentService, never()).generateCombinedWord(argThat((List<RPlotsData> list) -> true));    }
 
     @Test
-    void should_execute_rscript_and_generate_pdf() throws IOException, InterruptedException {
+    void should_execute_rscript_and_generate_pdf() throws IOException, InterruptedException, DocumentException {
         // Given
         Path resourceFile = Paths.get("src", "test", "resources", "testfile.R");
 
         //When
         Process mockedProcess = mock(Process.class);
-        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        when(rProcessor.execute(any(), any(), any(), eq(false))).thenReturn(mockedProcess);
         InputStream inputStream = new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8));
         InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
         when(mockedProcess.getInputStream()).thenReturn(inputStream);
@@ -313,7 +314,7 @@ class RScriptServiceTest {
                     List<RPlotsData> list = invocation.getArgument(0);
                     return list.get(0).getPlotFile();
                 });
-        byte[] result = rScriptService.executeRScriptAndGeneratePdf(resourceFile);
+        byte[] result = rScriptService.executeRScriptAndGeneratePdf(resourceFile, false);
 
         // Then
         assertNotNull(result);
@@ -324,13 +325,13 @@ class RScriptServiceTest {
     }
 
     @Test
-    void should_throw_exception_for_failed_execution_of_retrieve_pdf() throws IOException, InterruptedException {
+    void should_throw_exception_for_failed_execution_of_retrieve_pdf() throws IOException, InterruptedException, DocumentException {
         // Given
         Path resourceFile = Paths.get("src", "test", "resources", "testfile.R");
 
         // When
         Process mockedProcess = mock(Process.class);
-        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        when(rProcessor.execute(any(), any(), any(), eq(false))).thenReturn(mockedProcess);
 
         when(mockedProcess.waitFor()).thenThrow(new InterruptedException("Simulated interruption"));
 
@@ -345,7 +346,7 @@ class RScriptServiceTest {
                 });
 
         // Then
-        assertThrows(InterruptedException.class, () -> rScriptService.executeRScriptAndGeneratePdf(resourceFile));
+        assertThrows(InterruptedException.class, () -> rScriptService.executeRScriptAndGeneratePdf(resourceFile,false));
 
 
         // Clean up
@@ -369,7 +370,7 @@ class RScriptServiceTest {
 
         // When
         Process mockedProcess = mock(Process.class);
-        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        when(rProcessor.execute(any(), any(), any(), anyBoolean())).thenReturn(mockedProcess);
         InputStream inputStream = new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8));
         InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
         when(mockedProcess.getInputStream()).thenReturn(inputStream);
@@ -398,7 +399,7 @@ class RScriptServiceTest {
     }
 
     @Test
-    void should_throw_exception_for_failed_creating_plot() throws IOException, InterruptedException {
+    void should_throw_exception_for_failed_creating_plot() throws IOException, InterruptedException, DocumentException {
         // Given
         String originalFileName = "test_script.R";
         boolean generatePdf = false;
@@ -412,7 +413,7 @@ class RScriptServiceTest {
 
         // When
         Process mockedProcess = mock(Process.class);
-        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        when(rProcessor.execute(any(), any(), any(), anyBoolean())).thenReturn(mockedProcess);
         when(mockedProcess.waitFor()).thenReturn(1);
         when(mockedProcess.getInputStream()).thenReturn(new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8)));
         when(mockedProcess.getErrorStream()).thenReturn(new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8)));
@@ -425,7 +426,7 @@ class RScriptServiceTest {
         RScriptProcessingException exception = assertThrows(RScriptProcessingException.class, () -> rScriptService.createPlotFromRScripts(new MultipartFile[]{multipartFile}, generatePdf));
 
         assertTrue(exception.getMessage().contains("Failed to execute modified R script. Exit code: 1"));
-        verify(rProcessor, times(1)).execute(any(), any(), any());
+        verify(rProcessor, times(1)).execute(any(), any(), any(),anyBoolean());
         verify(mockedProcess, times(1)).waitFor();
         verify(mockedProcess, times(1)).getInputStream();
         verify(mockedProcess, times(1)).getErrorStream();
@@ -454,7 +455,7 @@ class RScriptServiceTest {
 
         // When
         Process mockedProcess = mock(Process.class);
-        when(rProcessor.execute(any(), any(), any())).thenReturn(mockedProcess);
+        when(rProcessor.execute(any(), any(), any(), anyBoolean())).thenReturn(mockedProcess);
         InputStream inputStream = new ByteArrayInputStream("Process Output".getBytes(StandardCharsets.UTF_8));
         InputStream errorStream = new ByteArrayInputStream("Process Error".getBytes(StandardCharsets.UTF_8));
         when(mockedProcess.getInputStream()).thenReturn(inputStream);

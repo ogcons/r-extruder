@@ -25,7 +25,7 @@ public class RProcessorImpl implements RProcessor {
      * @throws IOException Can happen if command is not executable
      */
     @Override
-    public Process execute(String command, String outputFileName, Path destinationPath) throws IOException {
+    public Process execute(String command, String outputFileName, Path destinationPath, boolean generatePdfWithPictures) throws IOException {
         log.info("Executing command: {}, filename: {}, path: {} ", command, outputFileName, destinationPath);
 
         // Split the command into an array of strings
