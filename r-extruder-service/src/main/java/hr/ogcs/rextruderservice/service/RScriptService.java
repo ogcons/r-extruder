@@ -1,5 +1,6 @@
 package hr.ogcs.rextruderservice.service;
 
+import com.itextpdf.text.DocumentException;
 import hr.ogcs.rextruderservice.exception.RScriptProcessingException;
 
 import hr.ogcs.rextruderservice.model.RPlotsData;
@@ -45,12 +46,12 @@ public class RScriptService {
                 Path scriptFilePath = saveRScript(uploadedFile);
                 byte[] plotbytes;
                 if (generatePdfWithPictures) {
-                    plotbytes = executeRScriptAndGeneratePdf(scriptFilePath);
+                    plotbytes = executeRScriptAndGeneratePdf(scriptFilePath, true);
                 } else {
                     plotbytes = executeRScriptAndRetrievePlot(scriptFilePath);
                 }
                 return new RPlotsData(plotbytes, uploadedFile.getOriginalFilename());
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException | InterruptedException | DocumentException e) {
                 log.error("Error during creation of plot for file {}: {}", uploadedFile.getOriginalFilename(), e.getMessage());
                 throw new RScriptProcessingException(e);
             }
@@ -78,25 +79,25 @@ public class RScriptService {
         return filePath;
     }
 
-    protected byte[] executeRScriptAndRetrievePlot(Path scriptFilePath) throws IOException, InterruptedException {
+    protected byte[] executeRScriptAndRetrievePlot(Path scriptFilePath) throws IOException, InterruptedException, DocumentException {
         Path outputFilePath = scriptFilePath.resolveSibling(
                 scriptFilePath.getFileName().toString().replace(".R", ".png"));
 
         String modifiedScriptContent = modifyScriptContent(scriptFilePath, outputFilePath.getFileName().toString());
         Path modifiedScriptPath = saveModifiedScript(modifiedScriptContent, scriptFilePath.getFileName().toString());
         try {
-            executeRScript(modifiedScriptPath, outputFilePath);
+            executeRScript(modifiedScriptPath, outputFilePath, false);
 
             Files.move(outputFilePath, scriptFilePath.resolveSibling(outputFilePath.getFileName()), StandardCopyOption.REPLACE_EXISTING);
 
             return Files.readAllBytes(scriptFilePath.resolveSibling(outputFilePath.getFileName()));
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | DocumentException e) {
             log.error("Error during R script execution: {}", e.getMessage());
             throw e;
         }
     }
 
-    protected byte[] executeRScriptAndGeneratePdf(Path scriptFilePath) throws IOException, InterruptedException {
+    protected byte[] executeRScriptAndGeneratePdf(Path scriptFilePath, boolean generatePdfWithPictures) throws IOException, InterruptedException, DocumentException {
         try {
             Path outputFilePath = scriptFilePath.resolveSibling(
                     scriptFilePath.getFileName().toString().replace(".R", ".pdf"));
@@ -104,11 +105,11 @@ public class RScriptService {
             String modifiedScriptContent = modifyScriptContentForPdfOnly(scriptFilePath, outputFilePath.getFileName().toString());
             Path modifiedScriptPath = saveModifiedScript(modifiedScriptContent, scriptFilePath.getFileName().toString());
 
-            executeRScript(modifiedScriptPath, outputFilePath);
+            executeRScript(modifiedScriptPath, outputFilePath, generatePdfWithPictures);
             Files.move(outputFilePath, scriptFilePath.resolveSibling(outputFilePath.getFileName()), StandardCopyOption.REPLACE_EXISTING);
 
             return Files.readAllBytes(outputFilePath);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | DocumentException e) {
             log.error("Error during R script execution and PDF conversion: {}", e.getMessage());
             throw e;
         }
@@ -181,7 +182,7 @@ public class RScriptService {
         return modifiedScriptPath;
     }
 
-    protected void executeRScript(Path modifiedScriptPath, Path outputFilePath) throws IOException, InterruptedException {
+    protected void executeRScript(Path modifiedScriptPath, Path outputFilePath, boolean generatePdfWithPictures) throws IOException, InterruptedException, DocumentException {
         if (modifiedScriptPath == null || modifiedScriptPath.getFileName() == null) {
             // Handle the null case, throw an exception, or log an error
             throw new IllegalArgumentException("Invalid modifiedScriptPath");
@@ -189,7 +190,7 @@ public class RScriptService {
         String command = rScriptPath + " " + modifiedScriptPath.toAbsolutePath();
 
         // The external R executable creates a PNG that is named like the script itself
-        Process process = rProcessor.execute(command, outputFilePath.getFileName().toString(), outputFilePath.getParent());
+        Process process = rProcessor.execute(command, outputFilePath.getFileName().toString(), outputFilePath.getParent(), generatePdfWithPictures);
 
         String processOutput = IOUtils.toString(process.getInputStream(), String.valueOf(StandardCharsets.UTF_8));
         String processError = IOUtils.toString(process.getErrorStream(), String.valueOf(StandardCharsets.UTF_8));

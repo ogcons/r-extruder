@@ -23,6 +23,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation group: 'org.apache.pdfbox', name: 'pdfbox-tools', version: '3.0.1'
 	implementation 'org.apache.pdfbox:pdfbox:2.0.24'
+	implementation group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13.3'
 	implementation 'org.apache.poi:poi-ooxml:5.2.3'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
