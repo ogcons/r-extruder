@@ -3,7 +3,7 @@
 
 ## Overview
 
-This Spring Boot application allows users to post R scripts, which are then executed on the server. The result of the R script execution is a plot saved in a Word document, which is returned to the user. This project is built using Java 21, Gradle, R 4.3.2 and Node.js.
+This Spring Boot application allows users to post R scripts, which are then executed on the server. The result of the R script execution is a plot saved in a Word document, which is returned to the user. The backend part of the project is built using Java 21, SpringBoot, Gradle, R 4.3.2. Frontend is built in ReactJS using Node.js.
 
 ### Component diagram:
 ![](docs/Diagram.svg)
@@ -70,6 +70,7 @@ npm start
 - Use these commands in project directory:
 
 ```bash 
+cd r-extruder-service
 ./gradlew clean build
 cd build/libs
 java -jar r-extruder-service-0.0.1-SNAPSHOT.jar
