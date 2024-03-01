@@ -9,3 +9,8 @@ management:
   endpoint:
     health:
       show-details: always
+server:
+  shutdown: graceful
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 1m
