@@ -23,18 +23,14 @@ Before running the application, ensure that the following prerequisites are met:
 - [Node.js](https://nodejs.org/en/download)
 
 ## Configuration
-Environment variables values can be found in Confluence dedicated page: [R-Extruder docs](https://confluence-ogcs.atlassian.net/wiki/spaces/BASF/pages/19595335/R-Extruder)
-
-For NPM_AUTH_TOKEN and NPM_AUTH_USERNAME check Confluence page: [Azure NPM registry local setup](https://confluence-ogcs.atlassian.net/wiki/spaces/SDKB/pages/5472874/Azure+NPM+registry+local+setup)
 
 Set Environment Variable R_EXECUTABLE to the binary of the R script.
-
 For Windows Users(Default):
 ```
 R_EXECUTABLE = C:\\Program Files\\R\\R-4.3.2\\bin\\Rscript.exe
 ```
-Set Environment Variable WORKING_DIR to the desired working directory.
 
+Set Environment Variable WORKING_DIR to the desired working directory.
 For Windows Users(Example):
 ```
 WORKING_DIR = C:\Users\username\Desktop
@@ -46,7 +42,6 @@ Set environment variable in system variables, but set them for Linux environment
 ```
 docker build -t r-extruder-service . --build-arg R_EXECUTABLE=$env:R_EXECUTABLE --build-arg WORKING_DIR=$env:WORKING_DIR
 ```
-
 
 ### Start Localstack and AWS CLI
 
@@ -72,11 +67,10 @@ npm start
 ```bash 
 cd r-extruder-service
 ./gradlew clean build
-cd build/libs
-java -jar r-extruder-service-0.0.1-SNAPSHOT.jar
+java -jar build/libs/r-extruder-service-0.0.1-SNAPSHOT.jar
 ```
 
-To test your endpoints: 
+To test the endpoints: 
 - Use Swagger documentation - http://localhost:8080/swagger-ui/index.html
 
 ## License
